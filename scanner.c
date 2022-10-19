@@ -72,6 +72,10 @@ int getToken(FILE *file, Token *token){
                 token->type = T_CONCAT;
                 curr_state = STATE_FINAL;
 
+            }else if(curr_char == ','){
+                token->type = T_COMMA;
+                curr_state = STATE_FINAL;
+                
             }else if(curr_char == '('){
                 token->type = T_L_BRACKET;
                 curr_state = STATE_FINAL;
