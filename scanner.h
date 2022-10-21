@@ -118,15 +118,26 @@ typedef struct token{
     char attribute[50];
 }Token;
 
-
-typedef struct string{
-    char string[100];
-    int lenght;
-}String;
-
-
+/**
+ * @param filename Name of the file
+ * @param file Pointer for file reading
+ * @return int -- 1 if an error is indicated else 0
+ */
 int openFile(char *filename, FILE **file);
+
+/**
+ * 
+ * @param file File where scanner reads characters 
+ * @param token Token structure where are stored informations
+ * @return int -- 1 if an error is indicated else 0
+ */
 int getToken(FILE *file, Token *token);
+
+/**
+ * 
+ * @param type Type of token
+ * @return const char* -- String representing token type
+ */
 const char* getTokenSymbol(Type_token type);
 
 #endif
