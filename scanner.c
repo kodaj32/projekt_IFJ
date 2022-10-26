@@ -145,8 +145,8 @@ int getToken(FILE *file, Token *token){
             if(curr_char == '\n'){
                 curr_state = STATE_START;
             }
-
             break;
+
         case STATE_BLOCK_COMMENT:
             if(curr_char == '*'){
                 curr_char = getc(file);
@@ -156,17 +156,50 @@ int getToken(FILE *file, Token *token){
                     ungetc(curr_char,file);
                 }
             }
-
             break;
+
         case STATE_LESS:
             if(curr_char == '='){
                 token->type = T_LESS_EQUAL;
+                curr_state = STATE_FINAL;
+                
+            }else if(curr_char == '?'){  
+                curr_state = STATE_HEAD_1;
+
             }else{
                 ungetc(curr_char, file);
                 token->type = T_LESS;
+                curr_state = STATE_FINAL;
             }
+            break;
 
-            curr_state = STATE_FINAL;
+        case STATE_HEAD_1:
+            if(curr_char == 'p'){
+                curr_state = STATE_HEAD_2;
+            }else{
+                //Chyba
+                return 1;
+            }
+            break;
+
+        case STATE_HEAD_2:
+            if(curr_char == 'h'){
+                curr_state = STATE_HEAD_3;
+            }else{
+                //Chyba
+                return 1;
+            }
+            break;
+
+        case STATE_HEAD_3:
+            if(curr_char == 'p'){
+                curr_state = STATE_FINAL;
+                token->type = T_HEAD;
+                strcpy(str, "<?php");
+            }else{
+                //Chyba
+                return 1;
+            }
             break;
 
         case STATE_GREATER:
@@ -178,6 +211,7 @@ int getToken(FILE *file, Token *token){
             }
             curr_state = STATE_FINAL;
             break;
+
         case STATE_ASSIGN:
             if(curr_char == '='){
                 curr_state = STATE_NEAR_ASSIGN;
@@ -188,6 +222,7 @@ int getToken(FILE *file, Token *token){
             }
 
             break;
+
         case STATE_NEAR_ASSIGN:
             if(curr_char == '='){
                 token->type = T_EQUAL;
