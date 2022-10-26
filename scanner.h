@@ -17,6 +17,10 @@ typedef enum state{
 
     STATE_START,
 
+    STATE_HEAD_1,
+    STATE_HEAD_2,
+    STATE_HEAD_3,
+
     STATE_CONCAT,
     STATE_MINUS,
     STATE_PLUS,
@@ -66,6 +70,8 @@ typedef enum state{
 //Token types
 typedef enum t_type{
     
+    T_HEAD,             //<?php
+
     //Keywords:
     T_ELSE,             //else
     T_FUNCTION,         //function
