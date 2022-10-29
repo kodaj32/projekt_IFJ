@@ -99,8 +99,7 @@ int getToken(FILE *file, Token *token){
                 curr_state = STATE_NOT;
 
             }else if(curr_char == '?'){
-                token->type = T_TYPE_ID;
-                curr_state = STATE_FINAL;
+                curr_state = STATE_Q_MARK;
 
             }else if(curr_char == ':'){
                 token->type = T_DOUBLE_DOT;
@@ -171,6 +170,16 @@ int getToken(FILE *file, Token *token){
                 token->type = T_LESS;
                 curr_state = STATE_FINAL;
             }
+            break;
+            
+        case STATE_Q_MARK:
+            if(curr_char == '>'){
+                token->type = T_PROLOG;
+                
+            }else{
+                token->type = T_TYPE_ID;
+            }
+            curr_state = STATE_FINAL;
             break;
 
         case STATE_HEAD_1:

@@ -62,6 +62,7 @@ typedef enum state{
     STATE_GREATER,
 
     STATE_ID,
+    STATE_Q_MARK,
 
     STATE_FINAL
 
@@ -71,6 +72,7 @@ typedef enum state{
 typedef enum t_type{
     
     T_HEAD,             //<?php
+    T_PROLOG,           //?>
 
     //Keywords:
     T_ELSE,             //else
