@@ -450,9 +450,14 @@ const char* getTokenSymbol(Type_token type){
         case T_SEMICOLON: return ";";
         case T_MUL: return "*";
         case T_INT_VAL: return "integer";
+        case T_FLOAT_VAL: return "float";
+        case T_FLOAT_EXP_VAL: return "float_exp";
         case T_LESS: return "<";
         case T_LESS_EQUAL: return "<=";
         case T_EOF: return "End of file";
+        case T_ID: return "identificator";
+        case T_HEAD: return "head (<?php)";
+        case T_PROLOG: return "prolog";
         default: return "";
     }
 
