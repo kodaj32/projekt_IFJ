@@ -310,6 +310,9 @@ int getToken(FILE *file, Token *token){
         case STATE_FLOAT_VAL:
             if(isdigit(curr_char)){
                 strncat(str, &curr_char, 1);
+            }else if(curr_char == 'e' || curr_char == 'E'){
+                strncat(str,&curr_char,1);
+                curr_state = STATE_FLOAT_EXP;
             }else{
                 ungetc(curr_char, file);
                 token->type = T_FLOAT_VAL;
