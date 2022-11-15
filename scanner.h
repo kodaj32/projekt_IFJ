@@ -1,9 +1,9 @@
-/**
- * File: scanner.h
- * Author: Radoslav Kodaj (xkdoaj00)
- * 
- * Date: 2022-10-19
- */
+//*************************************
+//File: scanner.h
+//
+//Author: Radoslav Kodaj (xkodaj00)
+//Date: 15.11.2022
+//*************************************
 
 
 #ifndef SCANNER_H

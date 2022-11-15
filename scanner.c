@@ -2,7 +2,7 @@
 //File: scanner.c
 //
 //Author: Radoslav Kodaj (xkodaj00)
-//Last edit: 
+//Date: 15.11.2022 
 //*************************************
 
 
