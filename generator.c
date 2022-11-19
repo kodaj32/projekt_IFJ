@@ -13,6 +13,9 @@
 #define printcnt(str, cnt)      printf("%s%d\n", str, cnt)  // prints string & counter & EOL
 #define printd(dec)             printf("%d", dec)           // prints decimal (integer)
 
+static void gen_built_in();
+static char* get_type_string_of_literal(Type_token const literal_type);
+
 struct counters {
     unsigned while_cnt;
     unsigned if_cnt;
@@ -29,6 +32,7 @@ void gen_init() {
     println("JUMP $$main");
     printeol();
     gen_built_in();
+    println("LABEL $$main"); // todo Premyslieť, ako situovať $$main. To by mohlo byť problematické, pretože sa mi zdá, že funckie môžu ľubovolne prekrývať hlavné telo programu.
 }
 
 void gen_variable_definition(char const *id) {
@@ -96,7 +100,7 @@ void gen_function_call_preparation() {
 void gen_function_parameter_pass_of_variable(char const *id1, char const *id2) {
     print("DEFVAR TF@");
     println(id1);
-    print("MOVE TF@")
+    print("MOVE TF@");
     print(id1);
     print(" LF@");
     println(id2);
@@ -105,7 +109,7 @@ void gen_function_parameter_pass_of_variable(char const *id1, char const *id2) {
 void gen_function_parameter_pass_of_literal(char const *id, char const *literal, Type_token const literal_type) {
     print("DEFVAR TF@");
     println(id);
-    print("MOVE TF@")
+    print("MOVE TF@");
     print(id);
     print(" ");
     print(get_type_string_of_literal(literal_type));
@@ -120,7 +124,7 @@ void gen_function_call(char const *id) {
 void gen_function_definition(char const *id) {
     print("LABEL $");
     println(id);
-    println("PUSHFRAME");
+    println("PUSHFRAME"); // todo PUSHFRAME sa tu musí nachádzať aj v prípade, ak funkcia nemá žiadne parametre (kvôli prekrytiu callee definícií premenných)
 }
 
 void gen_function_return() { // todo return value bude asi na vrchole zásobníku (záleží ako sa implementujú výrazi)
@@ -129,6 +133,20 @@ void gen_function_return() { // todo return value bude asi na vrchole zásobník
 }
 
 void gen_built_in() {
+    /* reads() */
+    gen_function_definition("reads");
+    println("READ GF@result string");
+    gen_function_return();
+
+    /* readi() */
+    gen_function_definition("readi");
+    println("READ GF@result int");
+    gen_function_return();
+
+    /* readf() */
+    gen_function_definition("readf");
+    println("READ GF@result float");
+    gen_function_return();
 
 }
 
@@ -148,8 +166,11 @@ static char* get_type_string_of_literal(Type_token const literal_type) {
     }
 }
 
-int main() {
-    return 0;
-}
+//int main() {
+//    gen_init();
+//    gen_function_call_preparation();
+//    gen_function_call("reads");
+//    return 0;
+//}
 
-// todo passing function return value through stack
+// todo passing function return value through stack ?maybe
