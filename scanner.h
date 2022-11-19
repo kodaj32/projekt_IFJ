@@ -29,7 +29,7 @@ typedef enum state{
     STATE_L_BRACKET,
     STATE_R_BRACKET,
     STATE_L_CUR_BRACKET,
-    STATE_R_CUR_BARCKET,
+    STATE_R_CUR_BRACKET,
     
     STATE_COMMA,
     STATE_UNDER,
@@ -101,13 +101,13 @@ typedef enum t_type{
     T_L_CUR_BRACKET,    // {
     T_R_CUR_BRACKET,    // }
     T_DOUBLE_DOT,       // :
-    T_ID,               // reprezents an identificator
+    T_ID,               // represents an identifier
     T_VAR_ID,           // $
     T_TYPE_ID,          // ?
 
     T_INT_VAL,          // integer value
     T_FLOAT_VAL,        // float value
-    T_FLOAT_EXP_VAL,    // float value in exponentional form
+    T_FLOAT_EXP_VAL,    // float value in exponential form
     T_STRING_VAL,       // string value
 
     T_GREATER,          // >
@@ -136,7 +136,7 @@ int openFile(char *filename, FILE **file);
 /**
  * 
  * @param file File where scanner reads characters 
- * @param token Token structure where are stored informations
+ * @param token Token structure where are stored information
  * @return int -- 1 if an error is indicated else 0
  */
 int getToken(FILE *file, Token *token);
