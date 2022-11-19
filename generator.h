@@ -8,6 +8,6 @@
 #include "scanner.h"
 
 static void gen_built_in();
-static char* get_type_string_of_literal(Type_token literal_type);
+static char* get_type_string_of_literal(Type_token const literal_type);
 
 #endif

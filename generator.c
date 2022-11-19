@@ -23,7 +23,7 @@ static struct counters counters = {};
 
 void gen_init() {
     println(".IFJcode22");
-    println("DEFVAR GF@result"); // Global variable used to store expression result popped from stack
+    println("DEFVAR GF@result"); // Global variable used to store expression result popped from stack or function return value
     println("CREATEFRAME");
     println("PUSHFRAME");
     println("JUMP $$main");
@@ -43,7 +43,7 @@ void gen_variable_assignment_of_variable(char const *id1, char const *id2) {
     println(id2);
 }
 
-void gen_variable_assignment_of_literal(char const *id, char const *literal, Type_token literal_type) {
+void gen_variable_assignment_of_literal(char const *id, char const *literal, Type_token const literal_type) {
     print("MOVE LF@");
     print(id);
     print(" ");
@@ -89,11 +89,50 @@ void gen_else_tail() {
     printcnt("LABEL else_tail", counters.else_cnt++);
 }
 
+void gen_function_call_preparation() {
+    println("CREATEFRAME");
+}
+
+void gen_function_parameter_pass_of_variable(char const *id1, char const *id2) {
+    print("DEFVAR TF@");
+    println(id1);
+    print("MOVE TF@")
+    print(id1);
+    print(" LF@");
+    println(id2);
+}
+
+void gen_function_parameter_pass_of_literal(char const *id, char const *literal, Type_token const literal_type) {
+    print("DEFVAR TF@");
+    println(id);
+    print("MOVE TF@")
+    print(id);
+    print(" ");
+    print(get_type_string_of_literal(literal_type));
+    println(literal);
+}
+
+void gen_function_call(char const *id) {
+    print("CALL $");
+    println(id);
+}
+
+void gen_function_definition(char const *id) {
+    print("LABEL $");
+    println(id);
+    println("PUSHFRAME");
+}
+
+void gen_function_return() { // todo return value bude asi na vrchole zásobníku (záleží ako sa implementujú výrazi)
+    println("POPFRAME");
+    println("RETURN");
+}
+
 void gen_built_in() {
 
 }
 
-static char* get_type_string_of_literal(Type_token literal_type) {
+static char* get_type_string_of_literal(Type_token const literal_type) {
     switch (literal_type) {
         case T_INT_VAL:
             return "int@";
