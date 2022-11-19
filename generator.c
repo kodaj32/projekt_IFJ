@@ -1,10 +1,13 @@
 /**
-* @Author Michal Frič
+* @Author Michal Frič <xfric02@vutbr.cz>
 */
 
 #include <stdio.h>
 
-#define print(str)              printf(str)                 // prints string
+#include "generator.h"
+#include "scanner.h"
+
+#define print(str)              printf("%s", str)           // prints string
 #define println(str)            printf("%s\n", str)         // prints string & EOL
 #define printeol()              printf("\n")                // prints EOL
 #define printcnt(str, cnt)      printf("%s%d\n", str, cnt)  // prints string & counter & EOL
@@ -15,15 +18,12 @@ struct counters {
     unsigned if_cnt;
     unsigned else_cnt;
 };
+
 static struct counters counters = {};
-
-void static gen_built_in() {
-
-}
 
 void gen_init() {
     println(".IFJcode22");
-    println("DEFVAR GF@*result"); // Global variable used to store expression result popped from stack if needed // todo GF@ bude využívané iba interne v rámci compileru ak sa nebude implementovať rozšírenie 'global' a teda premenné v globálnom rámci nemusia používať vyhradené identifikátory prefixované špeciálnymi znakmi
+    println("DEFVAR GF@result"); // Global variable used to store expression result popped from stack
     println("CREATEFRAME");
     println("PUSHFRAME");
     println("JUMP $$main");
@@ -31,9 +31,30 @@ void gen_init() {
     gen_built_in();
 }
 
-void gen_variable_definition(char *id) {
+void gen_variable_definition(char const *id) {
     print("DEFVAR LF@");
     println(id);
+}
+
+void gen_variable_assignment_of_variable(char const *id1, char const *id2) {
+    print("MOVE LF@");
+    print(id1);
+    print(" LF@");
+    println(id2);
+}
+
+void gen_variable_assignment_of_literal(char const *id, char const *literal, Type_token literal_type) {
+    print("MOVE LF@");
+    print(id);
+    print(" ");
+    print(get_type_string_of_literal(literal_type));
+    println(literal);
+}
+
+void gen_variable_assignment_of_function(char const *id) {
+    print("MOVE LF@");
+    print(id);
+    println(" GF@result");
 }
 
 void gen_while_head() {
@@ -52,8 +73,8 @@ void gen_while_tail() {
 }
 
 void gen_if_head() { // todo rovnaký problém ako v gen_while_cond()
-    println("POPS GF@*_result");
-    printcnt("JUMPIFEQ if_tail GF@*_result bool@false", counters.if_cnt);
+    println("POPS GF@result");
+    printcnt("JUMPIFEQ if_tail GF@result bool@false", counters.if_cnt);
 }
 
 void gen_if_tail() {
@@ -61,9 +82,35 @@ void gen_if_tail() {
 }
 
 void gen_else_head() {
-    printcnt("JUMPIFEQ else_tail GF@*_result bool@true", counters.else_cnt);
+    printcnt("JUMPIFEQ else_tail GF@result bool@true", counters.else_cnt);
 }
 
 void gen_else_tail() {
     printcnt("LABEL else_tail", counters.else_cnt++);
 }
+
+void gen_built_in() {
+
+}
+
+static char* get_type_string_of_literal(Type_token literal_type) {
+    switch (literal_type) {
+        case T_INT_VAL:
+            return "int@";
+        case T_FLOAT_VAL:
+        case T_FLOAT_EXP_VAL:
+            return "float@";
+        case T_STRING_VAL:
+            return "string@";
+        case T_NULL:
+            return "nil@";
+        default:
+            // todo err exit (99 - internal compiler error)
+    }
+}
+
+int main() {
+    return 0;
+}
+
+// todo passing function return value through stack
