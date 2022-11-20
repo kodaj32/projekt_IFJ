@@ -28,7 +28,7 @@ void LL_Dispose( LList *list ) {
 	list->activeElement = NULL;
 }
 
-void LL_InsertFirst( LList *list, void *data ) {
+void LL_InsertFirst( LList *list, Token data ) {
 
 	struct LLElement *newElemPtr = malloc(sizeof(struct LLElement));
 
@@ -36,7 +36,7 @@ void LL_InsertFirst( LList *list, void *data ) {
 		LL_Error();
 	}
 
-	newElemPtr->dataPtr = data;
+	newElemPtr->data = data;
 	newElemPtr->nextElement = list->firstElement;
 
 	list->firstElement = newElemPtr;
@@ -49,13 +49,13 @@ void LL_First( LList *list ) {
 }
 
 
-void LL_GetFirst( LList *list, void *dataPtr ) {
+void LL_GetFirst( LList *list, Token *dataPtr ) {
 
 	if (list->firstElement == NULL) {
 		LL_Error();
 	}
 	else{
-		dataPtr = list->firstElement->dataPtr;
+		*dataPtr = list->firstElement->data;
 	}
 }
 
@@ -90,7 +90,7 @@ void LL_DeleteAfter( LList *list ) {
 	}
 }
 
-void LL_InsertAfter( LList *list, void *data ) {
+void LL_InsertAfter( LList *list, Token data ) {
 
 	struct LLElement *newElementPtr;
 	
@@ -101,7 +101,7 @@ void LL_InsertAfter( LList *list, void *data ) {
 			LL_Error();
 		}
 
-		newElementPtr->dataPtr = data;
+		newElementPtr->data = data;
 		newElementPtr->nextElement = list->activeElement->nextElement;
 		list->activeElement->nextElement = newElementPtr;
 
@@ -115,20 +115,21 @@ void LL_Next( LList *list ) {
 	}
 }
 
-void LL_GetValue(LList *list, void *dataPtr){
+void LL_GetValue(LList *list, Token *dataPtr){ 
 
 	if (list->activeElement == NULL){
 		LL_Error();
 	}
 	else{
-		dataPtr = list->activeElement->dataPtr;
+
+		*dataPtr = list->activeElement->data;
 	}
 }
 
-void LL_SetValue( LList *list, void *data ) {
+void LL_SetValue( LList *list, Token data ) {
 
 	if (list->activeElement != NULL) {
-		list->activeElement->dataPtr = data;
+		list->activeElement->data = data;
 	}
 }
 
