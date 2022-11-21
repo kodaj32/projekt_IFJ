@@ -7,11 +7,15 @@
 #include "generator.h"
 #include "scanner.h"
 
+/* Outputting macros for code generation */
 #define print(str)              printf("%s", str)           // prints string
 #define println(str)            printf("%s\n", str)         // prints string & EOL
 #define printeol()              printf("\n")                // prints EOL
-#define printcnt(str, cnt)      printf("%s%d\n", str, cnt)  // prints string & counter & EOL
+#define printcnt(str, cnt)      printf("%s%d\n", str, cnt)  // prints string & counter
 #define printd(dec)             printf("%d", dec)           // prints decimal (integer)
+
+/* Static repetitive components of final generated code */
+#define RESULT_VAR "GF@result" // Global variable used to store expression result popped from stack or function return value
 
 static void gen_built_in();
 static char* get_type_string_of_literal(Type_token const literal_type);
@@ -26,7 +30,8 @@ static struct counters counters = {};
 
 void gen_init() {
     println(".IFJcode22");
-    println("DEFVAR GF@result"); // Global variable used to store expression result popped from stack or function return value
+    print("DEFVAR ");
+    println(RESULT_VAR);
     println("CREATEFRAME");
     println("PUSHFRAME");
     println("JUMP $$main");
@@ -51,7 +56,7 @@ void gen_variable_assignment_of_literal(char const *id, char const *literal, Typ
     print("MOVE LF@");
     print(id);
     print(" ");
-    print(get_type_string_of_literal(literal_type));
+    println(RESULT_VAR);
     println(literal);
 }
 
@@ -63,34 +68,45 @@ void gen_variable_assignment_of_function(char const *id) {
 
 void gen_while_head() {
     printcnt("LABEL while_head", counters.while_cnt);
+    printeol();
 }
 
 void gen_while_cond() {
     println("PUSHS bool@false"); // todo bude tam vzdy bool, alebo môže byť aj int? treba konverziu int2bool? toto záleží na tom ako sa budú spracovávať výrazi
     // todo "Pokud výsledná hodnota výrazu není pravdivostní (tj. pravda či nepravda - v základním zadání pouze jako výsledek aplikace relačních operátorů dle sekce 5.1), tak se hodnota null, prázdný řetězec, 0 a "0" považují za nepravdu a ostatní hodnoty jako pravda."
     printcnt("JUMPIFEQS while_tail", counters.while_cnt);
+    printeol();
 }
 
 void gen_while_tail() {
     printcnt("JUMP while_head", counters.while_cnt);
+    printeol();
     printcnt("LABEL while_tail", counters.while_cnt++);
+    printeol();
 }
 
 void gen_if_head() { // todo rovnaký problém ako v gen_while_cond()
-    println("POPS GF@result");
-    printcnt("JUMPIFEQ if_tail GF@result bool@false", counters.if_cnt);
+    print("POPS ");
+    println(RESULT_VAR);
+    printcnt("JUMPIFEQ if_tail GF@result", counters.if_cnt);
+    println(" bool@false");
 }
 
 void gen_if_tail() {
     printcnt("LABEL if_tail", counters.if_cnt++);
+    printeol();
 }
 
 void gen_else_head() {
-    printcnt("JUMPIFEQ else_tail GF@result bool@true", counters.else_cnt);
+    printcnt("JUMPIFEQ else_tail", counters.else_cnt);
+    print(" ");
+    print(RESULT_VAR);
+    println(" bool@true");
 }
 
 void gen_else_tail() {
     printcnt("LABEL else_tail", counters.else_cnt++);
+    printeol();
 }
 
 void gen_function_call_preparation() {
@@ -135,17 +151,23 @@ void gen_function_return() { // todo return value bude asi na vrchole zásobník
 void gen_built_in() {
     /* reads() */
     gen_function_definition("reads");
-    println("READ GF@result string");
+    print("READ ");
+    print(RESULT_VAR);
+    println(" string");
     gen_function_return();
 
     /* readi() */
     gen_function_definition("readi");
-    println("READ GF@result int");
+    print("READ ");
+    print(RESULT_VAR);
+    println(" int");
     gen_function_return();
 
     /* readf() */
     gen_function_definition("readf");
-    println("READ GF@result float");
+    print("READ ");
+    print(RESULT_VAR);
+    println(" float");
     gen_function_return();
 
 }
@@ -162,7 +184,7 @@ static char* get_type_string_of_literal(Type_token const literal_type) {
         case T_NULL:
             return "nil@";
         default:
-            // todo err exit (99 - internal compiler error)
+            // todo err exit (99 - internal compiler error) (zatiaľ neviem ako sa bude riešiť error handling)
     }
 }
 
@@ -173,4 +195,4 @@ static char* get_type_string_of_literal(Type_token const literal_type) {
 //    return 0;
 //}
 
-// todo passing function return value through stack ?maybe
+// todo ?maybe? passing function return value through stack
