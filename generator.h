@@ -1,5 +1,5 @@
 /**
-* @Author Michal Frič <xfric02@vutbr.cz>
+* @Author Michal Frič <xfricm02@vutbr.cz>
 */
 
 #ifndef GENERATOR_H

@@ -1,11 +1,13 @@
 /**
-* @Author Michal Frič <xfric02@vutbr.cz>
+* @Author Michal Frič <xfricm02@vutbr.cz>
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "generator.h"
 #include "scanner.h"
+#include "linked_list.h"
 
 /* Outputting macros for code generation */
 #define print(str)              printf("%s", str)           // prints string
@@ -14,11 +16,15 @@
 #define printcnt(str, cnt)      printf("%s%d\n", str, cnt)  // prints string & counter
 #define printd(dec)             printf("%d", dec)           // prints decimal (integer)
 
+/* Macros for flag bitfield */
+#define FLAG_NO_AT  0b10000000
+#define FLAG_TF     0b01000000
+
 /* Static repetitive components of final generated code */
 #define RESULT_VAR "GF@result" // Global variable used to store expression result popped from stack or function return value
 
 static void gen_built_in();
-static char* get_type_string_of_literal(Type_token const literal_type);
+static char* get_type_string_of_symbol(Type_token const symbol_type, char const flags);
 
 struct counters {
     unsigned while_cnt;
@@ -40,30 +46,27 @@ void gen_init() {
     println("LABEL $$main"); // todo Premyslieť, ako situovať $$main. To by mohlo byť problematické, pretože sa mi zdá, že funckie môžu ľubovolne prekrývať hlavné telo programu.
 }
 
-void gen_variable_definition(char const *id) {
-    print("DEFVAR LF@");
-    println(id);
+void gen_variable_definition(Token *const variable_token) {
+    print("DEFVAR ");
+    print(get_type_string_of_symbol(variable_token->type, 0));
+    println(variable_token->attribute);
 }
 
-void gen_variable_assignment_of_variable(char const *id1, char const *id2) {
-    print("MOVE LF@");
-    print(id1);
-    print(" LF@");
-    println(id2);
+void gen_variable_assignment_of_symbol(Token *const variable_token, Token *const symbol_token) {
+    print("MOVE ");
+    print(get_type_string_of_symbol(variable_token->type, 0));
+    print(variable_token->attribute);
+    print(" ");
+    print(get_type_string_of_symbol(symbol_token->type, 0));
+    println(symbol_token->attribute);
 }
 
-void gen_variable_assignment_of_literal(char const *id, char const *literal, Type_token const literal_type) {
-    print("MOVE LF@");
-    print(id);
+void gen_variable_assignment_of_function(Token *const variable_token) {
+    print("MOVE ");
+    print(get_type_string_of_symbol(variable_token->type, 0));
+    print(variable_token->attribute);
     print(" ");
     println(RESULT_VAR);
-    println(literal);
-}
-
-void gen_variable_assignment_of_function(char const *id) {
-    print("MOVE LF@");
-    print(id);
-    println(" GF@result");
 }
 
 void gen_while_head() {
@@ -109,38 +112,41 @@ void gen_else_tail() {
     printeol();
 }
 
-void gen_function_call_preparation() {
+void gen_function_call(Token *const function_token, LList *variable_token_list, LList *symbol_token_list) {
+    Token *variable_token, *symbol_token;
+
     println("CREATEFRAME");
-}
 
-void gen_function_parameter_pass_of_variable(char const *id1, char const *id2) {
-    print("DEFVAR TF@");
-    println(id1);
-    print("MOVE TF@");
-    print(id1);
-    print(" LF@");
-    println(id2);
-}
+    LL_First(variable_token_list);
+    LL_First(symbol_token_list);
 
-void gen_function_parameter_pass_of_literal(char const *id, char const *literal, Type_token const literal_type) {
-    print("DEFVAR TF@");
-    println(id);
-    print("MOVE TF@");
-    print(id);
-    print(" ");
-    print(get_type_string_of_literal(literal_type));
-    println(literal);
-}
+    // Iterate through lists, define and initialize arguments
+    while(LL_IsActive(variable_token_list) && LL_IsActive(symbol_token_list)) {
+        LL_GetValue(variable_token_list, variable_token);
+        LL_GetValue(symbol_token_list, symbol_token);
 
-void gen_function_call(char const *id) {
+        print("DEFVAR ");
+        print(get_type_string_of_symbol(variable_token->type, FLAG_TF));
+        println(variable_token->attribute);
+        print("MOVE ");
+        print(get_type_string_of_symbol(variable_token->type, FLAG_TF));
+        print(variable_token->attribute);
+        print(" ");
+        print(get_type_string_of_symbol(symbol_token->type, 0));
+        println(symbol_token->attribute);
+
+        LL_Next(variable_token_list);
+        LL_Next(symbol_token_list);
+    }
+
     print("CALL $");
-    println(id);
+    println(function_token->attribute);
 }
 
-void gen_function_definition(char const *id) {
+void gen_function_definition(Token *const function_token) {
     print("LABEL $");
-    println(id);
-    println("PUSHFRAME"); // todo PUSHFRAME sa tu musí nachádzať aj v prípade, ak funkcia nemá žiadne parametre (kvôli prekrytiu callee definícií premenných)
+    println(function_token->attribute);
+    println("PUSHFRAME");
 }
 
 void gen_function_return() { // todo return value bude asi na vrchole zásobníku (záleží ako sa implementujú výrazi)
@@ -149,22 +155,27 @@ void gen_function_return() { // todo return value bude asi na vrchole zásobník
 }
 
 void gen_built_in() {
+    Token function_token;
+
     /* reads() */
-    gen_function_definition("reads");
+    strcpy(function_token.attribute, "reads");
+    gen_function_definition(&function_token);
     print("READ ");
     print(RESULT_VAR);
     println(" string");
     gen_function_return();
 
     /* readi() */
-    gen_function_definition("readi");
+    strcpy(function_token.attribute, "readi");
+    gen_function_definition(&function_token);
     print("READ ");
     print(RESULT_VAR);
     println(" int");
     gen_function_return();
 
     /* readf() */
-    gen_function_definition("readf");
+    strcpy(function_token.attribute, "readf");
+    gen_function_definition(&function_token);
     print("READ ");
     print(RESULT_VAR);
     println(" float");
@@ -172,27 +183,34 @@ void gen_built_in() {
 
 }
 
-static char* get_type_string_of_literal(Type_token const literal_type) {
-    switch (literal_type) {
+static char* get_type_string_of_symbol(Type_token const symbol_type, char const flags) {
+    char const _FLAG_NO_AT = 0b1000000 & flags;
+    char const _FLAG_TF = 0b0100000 & flags;
+
+    switch (symbol_type) {
+        case T_ID:
+            if (_FLAG_TF) {
+                return _FLAG_NO_AT ? "@TF" : "TF";
+            }
+            return _FLAG_NO_AT ? "@LF" : "LF";
         case T_INT_VAL:
-            return "int@";
+            return _FLAG_NO_AT ? "@int" : "int";
         case T_FLOAT_VAL:
         case T_FLOAT_EXP_VAL:
-            return "float@";
+            return _FLAG_NO_AT ? "@float" : "float";
         case T_STRING_VAL:
-            return "string@";
+            return _FLAG_NO_AT ? "@string" : "string";
         case T_NULL:
-            return "nil@";
+            return _FLAG_NO_AT ? "@nil" : "nil";
         default:
             // todo err exit (99 - internal compiler error) (zatiaľ neviem ako sa bude riešiť error handling)
     }
 }
 
-//int main() {
-//    gen_init();
-//    gen_function_call_preparation();
-//    gen_function_call("reads");
-//    return 0;
-//}
+int main() {
+    gen_init();
+//    gen_function_call("reads", NULL, NULL);
+    return 0;
+}
 
-// todo ?maybe? passing function return value through stack
+// todo ?maybe? čistiť stack
