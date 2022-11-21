@@ -2,9 +2,11 @@
 #include "linked_list.h"
 #include "scanner.h"
 
+int error_code = 0;
 
 void LL_Error() {
-	printf("*ERROR* The program has performed an illegal operation.\n");
+	error_code = 99;
+	fprintf(stderr,"*ERROR* The program has performed an illegal operation.\n");
 }
 
 void LL_Init( LList *list ) {
