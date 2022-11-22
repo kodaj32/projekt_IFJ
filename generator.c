@@ -1,12 +1,11 @@
 /**
-* @Author Michal Frič <xfricm02@vutbr.cz>
-*/
+ * @Author Michal Frič <xfricm02@vutbr.cz>
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "generator.h"
 #include "scanner.h"
 #include "linked_list.h"
 
@@ -77,6 +76,7 @@ void gen_while_head() {
 void gen_while_cond() {
     println("PUSHS bool@false"); // todo bude tam vzdy bool, alebo môže byť aj int? treba konverziu int2bool? toto záleží na tom ako sa budú spracovávať výrazi
     // todo "Pokud výsledná hodnota výrazu není pravdivostní (tj. pravda či nepravda - v základním zadání pouze jako výsledek aplikace relačních operátorů dle sekce 5.1), tak se hodnota null, prázdný řetězec, 0 a "0" považují za nepravdu a ostatní hodnoty jako pravda."
+    // todo also bool je v základnom zadaní možné použiť iba ako podmienku a nie je možné s nim ďalej pracovať (napríklad ho ukladať do premennej)
     printcnt("JUMPIFEQS while_tail", counters.while_cnt);
     printeol();
 }
@@ -154,7 +154,7 @@ void gen_function_return() { // todo return value bude asi na vrchole zásobník
 static void gen_built_in() {
     Token function_token;
 
-    /* reads() */
+    /* function reads() : ?string */
     strcpy(function_token.attribute, "reads");
     gen_function_definition(&function_token);
     print("READ ");
@@ -162,7 +162,7 @@ static void gen_built_in() {
     println(" string");
     gen_function_return();
 
-    /* readi() */
+    /* function reads() : ?int */
     strcpy(function_token.attribute, "readi");
     gen_function_definition(&function_token);
     print("READ ");
@@ -170,7 +170,7 @@ static void gen_built_in() {
     println(" int");
     gen_function_return();
 
-    /* readf() */
+    /* function reads() : ?float */
     strcpy(function_token.attribute, "readf");
     gen_function_definition(&function_token);
     print("READ ");
@@ -178,6 +178,12 @@ static void gen_built_in() {
     println(" float");
     gen_function_return();
 
+    /* function strlen(string $s) : int */
+//    strcpy(function_token.attribute, "strlen");
+//    gen_function_definition(&function_token);
+//    print("STRLEN ");
+//    print(RESULT_VAR);
+    // STRLEN ⟨var⟩ ⟨symb⟩
 }
 
 static void print_formatted_token(Token *const token, char const flags) {
@@ -235,8 +241,8 @@ static void print_formatted_token(Token *const token, char const flags) {
     }
 }
 
-int main() { // todo remove (intended for testing purposes)
-    gen_init();
-//    gen_function_call("reads", NULL, NULL);
-    return 0;
-}
+//int main() { // todo remove (intended for testing purposes)
+//    gen_init();
+////    gen_function_call("reads", NULL, NULL);
+//    return 0;
+//}
