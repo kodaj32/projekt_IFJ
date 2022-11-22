@@ -40,10 +40,10 @@ void gen_init() {
     println(RESULT_VAR);
     println("CREATEFRAME");
     println("PUSHFRAME");
-    println("JUMP $$main");
+    println("JUMP $main");
     printeol();
     gen_built_in();
-    println("LABEL $$main"); // todo Premyslieť, ako situovať $$main. To by mohlo byť problematické, pretože sa mi zdá, že funckie môžu ľubovolne prekrývať hlavné telo programu.
+    println("LABEL $main"); // todo Premyslieť, ako situovať $main. To by mohlo byť problematické, pretože sa mi zdá, že funckie môžu ľubovolne prekrývať hlavné telo programu.
 }
 
 void gen_variable_definition(Token *const variable_token) {
@@ -120,7 +120,7 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
     LL_First(variable_token_list);
     LL_First(symbol_token_list);
 
-    // Iterate through lists, define and initialize arguments
+    // Iterate through lists, define and initialize function's arguments
     while(LL_IsActive(variable_token_list) && LL_IsActive(symbol_token_list)) {
         LL_GetValue(variable_token_list, variable_token);
         LL_GetValue(symbol_token_list, symbol_token);
@@ -139,12 +139,12 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
         LL_Next(symbol_token_list);
     }
 
-    print("CALL $");
+    print("CALL ");
     println(function_token->attribute);
 }
 
 void gen_function_definition(Token *const function_token) {
-    print("LABEL $");
+    print("LABEL ");
     println(function_token->attribute);
     println("PUSHFRAME");
 }
@@ -154,7 +154,7 @@ void gen_function_return() { // todo return value bude asi na vrchole zásobník
     println("RETURN");
 }
 
-void gen_built_in() {
+static void gen_built_in() {
     Token function_token;
 
     /* reads() */
@@ -185,7 +185,7 @@ void gen_built_in() {
 
 static char* get_type_string_of_symbol(Type_token const symbol_type, char const flags) {
     char const _FLAG_NO_AT = 0b1000000 & flags;
-    char const _FLAG_TF = 0b0100000 & flags;
+    char const _FLAG_TF =    0b0100000 & flags;
 
     switch (symbol_type) {
         case T_ID:
@@ -207,10 +207,8 @@ static char* get_type_string_of_symbol(Type_token const symbol_type, char const 
     }
 }
 
-int main() {
+int main() { // todo remove (intended for testing purposes)
     gen_init();
 //    gen_function_call("reads", NULL, NULL);
     return 0;
 }
-
-// todo ?maybe? čistiť stack
