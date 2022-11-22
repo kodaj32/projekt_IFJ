@@ -3,6 +3,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "generator.h"
@@ -10,21 +11,24 @@
 #include "linked_list.h"
 
 /* Outputting macros for code generation */
-#define print(str)              printf("%s", str)           // prints string
-#define println(str)            printf("%s\n", str)         // prints string & EOL
-#define printeol()              printf("\n")                // prints EOL
-#define printcnt(str, cnt)      printf("%s%d\n", str, cnt)  // prints string & counter
-#define printd(dec)             printf("%d", dec)           // prints decimal (integer)
+#define print(str)              printf("%s", str)                // prints string
+#define println(str)            printf("%s\n", str)              // prints string & EOL
+#define printeol()              printf("\n")                     // prints EOL
+#define printcnt(str, cnt)      printf("%s%d\n", str, cnt)       // prints string & counter
+#define printch(ch)             printf("%c", ch)                 // prints character
+#define printd(dec)             printf("%02d", dec)              // prints decimal (integer)
+#define printflt(flt)           printf("%a", strtod(flt, NULL))  // prints float
 
 /* Macros for flag bitfield */
-#define FLAG_NO_AT  0b10000000
-#define FLAG_TF     0b01000000
+#define FLAG_TYPE_ONLY  0b10000000  // Do not print at sign followed by attribute of token
+#define FLAG_TF         0b01000000  // Use Temporary frame instead of Local frame
+#define FLAG_NL         0b00100000  // Insert new line at the end
 
 /* Static repetitive components of final generated code */
 #define RESULT_VAR "GF@result" // Global variable used to store expression result popped from stack or function return value
 
 static void gen_built_in();
-static char* format_token(Token const token, char const flags);
+static void print_formatted_token(Token *const token, char const flags);
 
 struct counters {
     unsigned while_cnt;
@@ -48,19 +52,19 @@ void gen_init() {
 
 void gen_variable_definition(Token *const variable_token) {
     print("DEFVAR ");
-    println(format_token(variable_token, 0));
+    print_formatted_token(variable_token, FLAG_NL);
 }
 
 void gen_variable_assignment_of_symbol(Token *const variable_token, Token *const symbol_token) {
     print("MOVE ");
-    print(format_token(variable_token, 0));
+    print_formatted_token(variable_token, 0);
     print(" ");
-    println(format_token(symbol_token, 0));
+    print_formatted_token(symbol_token, FLAG_NL);
 }
 
 void gen_variable_assignment_of_function(Token *const variable_token) {
     print("MOVE ");
-    print(format_token(variable_token, 0));
+    print_formatted_token(variable_token, 0);
     print(" ");
     println(RESULT_VAR);
 }
@@ -122,11 +126,11 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
         LL_GetValue(symbol_token_list, symbol_token);
 
         print("DEFVAR ");
-        println(format_token(variable_token, FLAG_TF));
+        print_formatted_token(variable_token, FLAG_TF | FLAG_NL);
         print("MOVE ");
-        print(format_token(variable_token, FLAG_TF));
+        print_formatted_token(variable_token, FLAG_TF);
         print(" ");
-        println(format_token(symbol_token, 0));
+        print_formatted_token(symbol_token, FLAG_NL);
 
         LL_Next(variable_token_list);
         LL_Next(symbol_token_list);
@@ -176,27 +180,58 @@ static void gen_built_in() {
 
 }
 
-static char* format_token(Token const token, char const flags) { // todo Append attribute
-    char const _FLAG_NO_AT = 0b1000000 & flags;
-    char const _FLAG_TF =    0b0100000 & flags;
+static void print_formatted_token(Token *const token, char const flags) {
+    char const _FLAG_TYPE_ONLY = 0b10000000 & flags;
+    char const _FLAG_TF        = 0b01000000 & flags;
+    char const _FLAG_NL        = 0b00100000 & flags;
 
-    switch (symbol_type) {
+    switch (token->type) {
         case T_ID:
-            if (_FLAG_TF) {
-                return _FLAG_NO_AT ? "TF@" : "TF";
-            }
-            return _FLAG_NO_AT ? "LF@" : "LF";
+            print(_FLAG_TF ? "TF@" : "LF@");
+            print(token->attribute);
+            break;
         case T_INT_VAL:
-            return _FLAG_NO_AT ? "int@" : "int";
+            if (_FLAG_TYPE_ONLY) {
+                print("int");
+            } else {
+                print("int@");
+                print(token->attribute);
+            }
+            break;
         case T_FLOAT_VAL:
         case T_FLOAT_EXP_VAL:
-            return _FLAG_NO_AT ? "float@" : "float";
+            if (_FLAG_TYPE_ONLY) {
+                print("float");
+            } else {
+                print("float@");
+                printflt(token->attribute);
+            }
+            break;
         case T_STRING_VAL:
-            return _FLAG_NO_AT ? "string@" : "string";
+            if (_FLAG_TYPE_ONLY) {
+                print("string");
+            } else { // Format string with scape sequences
+                print("string@");
+                char ch;
+                for (int i = 0; i < strlen(token->attribute); ++i) {
+                    if ((ch = token->attribute[i]) == '\\' || ch == '#' || (ch <= 32 && ch >= 0)) {
+                        printch('\\');
+                        printd(ch);
+                    } else {
+                        printch(ch);
+                    }
+                }
+            }
+            break;
         case T_NULL:
-            return _FLAG_NO_AT ? "nil@" : "nil";
+            print("nil@nil");
+            break;
         default:
             // todo err exit (99 - internal compiler error) (zatiaľ neviem ako sa bude riešiť error handling)
+    }
+
+    if (_FLAG_NL) {
+        printeol();
     }
 }
 
