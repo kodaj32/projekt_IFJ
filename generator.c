@@ -24,7 +24,7 @@
 #define RESULT_VAR "GF@result" // Global variable used to store expression result popped from stack or function return value
 
 static void gen_built_in();
-static char* get_type_string_of_symbol(Type_token const symbol_type, char const flags);
+static char* format_token(Token const token, char const flags);
 
 struct counters {
     unsigned while_cnt;
@@ -48,23 +48,19 @@ void gen_init() {
 
 void gen_variable_definition(Token *const variable_token) {
     print("DEFVAR ");
-    print(get_type_string_of_symbol(variable_token->type, 0));
-    println(variable_token->attribute);
+    println(format_token(variable_token, 0));
 }
 
 void gen_variable_assignment_of_symbol(Token *const variable_token, Token *const symbol_token) {
     print("MOVE ");
-    print(get_type_string_of_symbol(variable_token->type, 0));
-    print(variable_token->attribute);
+    print(format_token(variable_token, 0));
     print(" ");
-    print(get_type_string_of_symbol(symbol_token->type, 0));
-    println(symbol_token->attribute);
+    println(format_token(symbol_token, 0));
 }
 
 void gen_variable_assignment_of_function(Token *const variable_token) {
     print("MOVE ");
-    print(get_type_string_of_symbol(variable_token->type, 0));
-    print(variable_token->attribute);
+    print(format_token(variable_token, 0));
     print(" ");
     println(RESULT_VAR);
 }
@@ -126,14 +122,11 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
         LL_GetValue(symbol_token_list, symbol_token);
 
         print("DEFVAR ");
-        print(get_type_string_of_symbol(variable_token->type, FLAG_TF));
-        println(variable_token->attribute);
+        println(format_token(variable_token, FLAG_TF));
         print("MOVE ");
-        print(get_type_string_of_symbol(variable_token->type, FLAG_TF));
-        print(variable_token->attribute);
+        print(format_token(variable_token, FLAG_TF));
         print(" ");
-        print(get_type_string_of_symbol(symbol_token->type, 0));
-        println(symbol_token->attribute);
+        println(format_token(symbol_token, 0));
 
         LL_Next(variable_token_list);
         LL_Next(symbol_token_list);
@@ -183,25 +176,25 @@ static void gen_built_in() {
 
 }
 
-static char* get_type_string_of_symbol(Type_token const symbol_type, char const flags) {
+static char* format_token(Token const token, char const flags) { // todo Append attribute
     char const _FLAG_NO_AT = 0b1000000 & flags;
     char const _FLAG_TF =    0b0100000 & flags;
 
     switch (symbol_type) {
         case T_ID:
             if (_FLAG_TF) {
-                return _FLAG_NO_AT ? "@TF" : "TF";
+                return _FLAG_NO_AT ? "TF@" : "TF";
             }
-            return _FLAG_NO_AT ? "@LF" : "LF";
+            return _FLAG_NO_AT ? "LF@" : "LF";
         case T_INT_VAL:
-            return _FLAG_NO_AT ? "@int" : "int";
+            return _FLAG_NO_AT ? "int@" : "int";
         case T_FLOAT_VAL:
         case T_FLOAT_EXP_VAL:
-            return _FLAG_NO_AT ? "@float" : "float";
+            return _FLAG_NO_AT ? "float@" : "float";
         case T_STRING_VAL:
-            return _FLAG_NO_AT ? "@string" : "string";
+            return _FLAG_NO_AT ? "string@" : "string";
         case T_NULL:
-            return _FLAG_NO_AT ? "@nil" : "nil";
+            return _FLAG_NO_AT ? "nil@" : "nil";
         default:
             // todo err exit (99 - internal compiler error) (zatiaľ neviem ako sa bude riešiť error handling)
     }
