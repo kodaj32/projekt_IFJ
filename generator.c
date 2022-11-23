@@ -26,7 +26,21 @@
 /* Static repetitive components of final generated code */
 #define RESULT_VAR "GF@result" // Global variable used to store expression result popped from stack or function return value
 
+/**
+ * Generate standard built-in function definitions.
+ */
 static void gen_built_in();
+
+/**
+ * Prints correctly formatted symbol token.
+ *
+ * @param token Symbol token.
+ * @param flags Flags adjusting print format.
+ * Flags (see definitions of corresponding macros):
+ *  FLAG_TYPE_ONLY
+ *  FLAG_TF
+ *  FLAG_NF
+ */
 static void print_formatted_token(Token *const token, char const flags);
 
 struct counters {
