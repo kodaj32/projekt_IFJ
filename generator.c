@@ -37,9 +37,10 @@ static void gen_built_in();
  * @param token Symbol token.
  * @param flags Flags adjusting print format.
  * Flags (see definitions of corresponding macros):
- *  FLAG_TYPE_ONLY
- *  FLAG_TF
- *  FLAG_NF
+ *  x....... FLAG_TYPE_ONLY
+ *  .x...... FLAG_TF
+ *  ..x..... FLAG_NF
+ *  ...xxxxx Reserved (no use)
  */
 static void print_formatted_token(Token *const token, char const flags);
 
