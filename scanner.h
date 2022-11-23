@@ -123,7 +123,7 @@ typedef enum t_type{
 //Token structure
 typedef struct token{
     Type_token type;
-    char attribute[50];
+    char attribute[1000];
 }Token;
 
 /**

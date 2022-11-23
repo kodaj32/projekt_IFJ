@@ -31,7 +31,7 @@ int getToken(FILE *file, Token *token){
 
     char curr_char;
     State curr_state = STATE_START;
-    char str[50];
+    char str[1000];
     strcpy(str,"");
 
     while(true){
