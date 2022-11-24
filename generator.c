@@ -161,27 +161,42 @@ static void gen_built_in() {
 
     /* function reads() : ?string */
     strcpy(function_token.attribute, "reads");
-    gen_function_definition(&function_token);
+    gen_function_definition_head(&function_token);
     print("READ ");
     print(RESULT_VAR);
     println(" string");
     gen_function_return();
+    gen_function_definition_tail(&function_token);
 
     /* function reads() : ?int */
     strcpy(function_token.attribute, "readi");
-    gen_function_definition(&function_token);
+    gen_function_definition_head(&function_token);
     print("READ ");
     print(RESULT_VAR);
     println(" int");
     gen_function_return();
+    gen_function_definition_tail(&function_token);
 
     /* function reads() : ?float */
     strcpy(function_token.attribute, "readf");
-    gen_function_definition(&function_token);
+    gen_function_definition_head(&function_token);
     print("READ ");
     print(RESULT_VAR);
     println(" float");
     gen_function_return();
+    gen_function_definition_tail(&function_token);
+
+    /* function write ( term ) : void
+     *
+     * (Dynamic number of parameters is not supported in ifj22
+     * and this function implementation defines just one
+     * argument - multiple calls have to be performed on
+     * syntax analysis level) */
+    strcpy(function_token.attribute, "write");
+    gen_function_definition_head(&function_token);
+    println("WRITE LF@term");
+    gen_function_return();
+    gen_function_definition_tail(&function_token);
 
     /* function strlen(string $s) : int */
 //    strcpy(function_token.attribute, "strlen");
