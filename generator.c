@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "generator.h"
 #include "scanner.h"
 #include "linked_list.h"
 
