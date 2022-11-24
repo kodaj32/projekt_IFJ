@@ -43,10 +43,8 @@ void gen_init() {
     println(RESULT_VAR);
     println("CREATEFRAME");
     println("PUSHFRAME");
-    println("JUMP $main");
     printeol();
     gen_built_in();
-    println("LABEL $main"); // todo Premyslieť, ako situovať $main. To by mohlo byť problematické, pretože sa mi zdá, že funckie môžu ľubovolne prekrývať hlavné telo programu.
 }
 
 void gen_variable_definition(Token *const variable_token) {
@@ -140,10 +138,17 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
     println(function_token->attribute);
 }
 
-void gen_function_definition(Token *const function_token) {
+void gen_function_definition_head(Token *const function_token) {
+    print("JUMP $");
+    println(function_token->attribute);
     print("LABEL ");
     println(function_token->attribute);
     println("PUSHFRAME");
+}
+
+void gen_function_definition_tail(Token *const function_token) {
+    print("LABEL $");
+    println(function_token->attribute);
 }
 
 void gen_function_return() { // todo return value bude asi na vrchole zásobníku (záleží ako sa implementujú výrazi)

@@ -5,6 +5,8 @@
  * Functions are in large using Token structure defined in scanner. Notation in these functions in general is following:
  *   Variable and function token is one with type T_ID.
  *   Symbol token is one with T_ID | T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL
+ * Note: It is callee responsibility to only pass tokens with correct types of what individual functions are expecting.
+ *       What types they expect differs.
  *
  * Documentation was omitted at some places, where code is self-documented well enough.
  *
@@ -18,7 +20,7 @@
 #include "linked_list.h"
 
 /**
- * Initialize code generation. Should be called once before any of other code segments are generated.
+ * Initialize code generation. Must be called once and only once, before any of other code segments are generated.
  */
 void gen_init();
 
@@ -89,9 +91,21 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
 /**
  * Is called when start of function definition block is hit (before function body).
  *
+ * This function can be called in any point of code generation and integrity of statements at the main level will not be
+ * violated (In other words, this function head definition can be called in any point of main body program code
+ * generation). This is ensured by generating JUMP statement from top of function definition to it's bottom, so only way
+ * to jump into function body is by it's call.
+ *
  * @param function_token Function token containing it's name as attribute.
  */
-void gen_function_definition(Token *const function_token);
+void gen_function_definition_head(Token *const function_token);
+
+/**
+ * Is called on end of function definition block.
+ *
+ * @param function_token Function token containing it's name as attribute.
+ */
+void gen_function_definition_tail(Token *const function_token);
 
 /**
  * Generate return from function when return keyword is hit.
