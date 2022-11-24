@@ -3,10 +3,17 @@
  * to generate smaller logical segments.
  *
  * Functions are in large using Token structure defined in scanner. Notation in these functions in general is following:
- *   Variable and function token is one with type T_ID.
- *   Symbol token is one with T_ID | T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL
- * Note: It is callee responsibility to only pass tokens with correct types of what individual functions are expecting.
- *       What types they expect differs.
+ *   Variable token is one with type   T_ID
+ *   Function token is one with type   T_ID
+ *   Symbol token is one with type     T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL |
+ *                                     (Function token)
+ *   Data type token is one with type  T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL
+ *   Operation token is one with type  T_PLUS | T_MINUS | T_DIV | T_MUL | T_CONCAT | T_EQUAL | T_NOT_EQUAL | T_GREATER |
+ *                                     T_LESS | T_GREATER_EQUAL | T_LESS_EQUAL
+ * It is callee responsibility to only pass tokens with correct types of what individual functions are expecting. What
+ * types they expect differs.
+ * Token data type might not be best suite for this, but was used, because in time of code generation creation it was
+ * most suitable. This might be changed in the future.
  *
  * Documentation was omitted at some places, where code is self-documented well enough.
  *
@@ -18,6 +25,12 @@
 
 #include "scanner.h"
 #include "linked_list.h"
+
+/// Flags for dynamic type checks by which exit code is determined
+typedef enum place {
+    expression,
+    function
+} Place;
 
 /**
  * Initialize code generation. Must be called once and only once, before any of other code segments are generated.
@@ -32,17 +45,46 @@ void gen_init();
 void gen_variable_definition(Token *const variable_token);
 
 /**
+ * Push one operand to the top of data stack.
+ *
+ * Is intended for expressions generation.
+ *
+ * @param symbol_token expression operand.
+ */
+void gen_expression_operand(Token *const symbol_token);
+
+/**
+ * Execute operation on two (or one if operation takes one argument) top operands on stack.
+ *
+ * Is intended for expressions generation.
+ *
+ * @param operation_token expression operator.
+ */
+void gen_expression_operator(Token *const operation_token);
+
+/**
  * @param variable_token Destination variable token.
  * @param symbol_token Source symbol token.
  */
 void gen_variable_assignment_of_symbol(Token *const variable_token, Token *const symbol_token);
 
 /**
- * Is called after function execution. Function return value is assigned to the variable token.
+ * Assign value from top of the data stack to variable. That might be:
+ *   expression result
+ *   function return value (return value expression)
  *
  * @param variable_token Variable token.
  */
-void gen_variable_assignment_of_function(Token *const variable_token);
+void gen_variable_assignment_of_expression(Token *const variable_token);
+
+/**
+ * Dynamically checks data type of variable. This is needed since ifj22 is dynamically typed language.
+ *
+ * @param variable_token Variable token.
+ * @param data_type_token Made-up token with type set to needed data type (attribute can be left uninitialized).
+ * @param place Place where checked variable is in program, hence correct return error code can be chose.
+ */
+void gen_variable_dynamic_type_check(Token *const variable_token, Token *const data_type_token, Place place);
 
 /**
  * Generate while initialization before conditional expression calculation is generated.
