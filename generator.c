@@ -10,21 +10,22 @@
 #include "linked_list.h"
 
 /* Outputting macros for code generation */
-#define print(str)              printf("%s", str)                // prints string
-#define println(str)            printf("%s\n", str)              // prints string & EOL
-#define printeol()              printf("\n")                     // prints EOL
-#define printcnt(str, cnt)      printf("%s%d\n", str, cnt)       // prints string & counter
-#define printch(ch)             printf("%c", ch)                 // prints character
-#define printd(dec)             printf("%02d", dec)              // prints decimal (integer)
-#define printflt(flt)           printf("%a", strtod(flt, NULL))  // prints float
+#define print(str)              printf("%s", str)                 // prints string
+#define println(str)            printf("%s\n", str)               // prints string & EOL
+#define printeol()              printf("\n")                      // prints EOL
+#define printcnt(str, cnt)      printf("%s%d\n", str, cnt)        // prints string & counter
+#define printch(ch)             printf("%c", ch)                  // prints character
+#define printd(dec)             printf("%02d", dec)               // prints decimal (integer)
+#define printflt(flt)           printf("%a", strtod(flt, NULL))   // prints float
+#define printfrmt(tok, flgs)    print_formatted_token(tok, flgs)  // prints formatted token
 
-/* Macros for flag bitfield */
-#define FLAG_TYPE_ONLY  0b10000000  // Do not print at sign followed by attribute of token
-#define FLAG_TF         0b01000000  // Use Temporary frame instead of Local frame
-#define FLAG_NL         0b00100000  // Insert new line at the end
+/** Macros for flag bitfield */
+#define FLAG_TYPE_ONLY  (char) 0b10000000  // Do not print at sign followed by attribute of token
+#define FLAG_TF         (char) 0b01000000  // Use Temporary frame instead of Local frame
+#define FLAG_NL         (char) 0b00100000  // Insert new line at the end
 
-/* Static repetitive components of final generated code */
-#define RESULT_VAR "GF@result" // Global variable used to store expression result popped from stack or function return value
+/** Static repetitive components of final generated code */
+#define TMP1 "GF@$1" // Used for temporary intermediate values
 
 /**
  * Generate standard built-in function definitions.
@@ -44,10 +45,12 @@ static void gen_built_in();
  */
 static void print_formatted_token(Token *const token, char const flags);
 
+/// Incrementing counters for labels
 struct counters {
     unsigned while_cnt;
     unsigned if_cnt;
     unsigned else_cnt;
+    unsigned data_type_check_cnt;
 };
 
 static struct counters counters = {};
@@ -55,36 +58,59 @@ static struct counters counters = {};
 void gen_init() {
     println(".IFJcode22");
     print("DEFVAR ");
-    println(RESULT_VAR);
+    println(TMP1);
+    print("DEFVAR ");
     println("CREATEFRAME");
     println("PUSHFRAME");
-    println("JUMP $main");
     printeol();
     gen_built_in();
-    println("LABEL $main"); // todo Premyslieť, ako situovať $main. To by mohlo byť problematické, pretože sa mi zdá, že funckie môžu ľubovolne prekrývať hlavné telo programu.
 }
 
 void gen_variable_definition(Token *const variable_token) {
     print("DEFVAR ");
-    print_formatted_token(variable_token, FLAG_NL);
+    printfrmt(variable_token, FLAG_NL);
+}
+
+void gen_expression_operand(Token *const symbol_token) {
+    print("PUSHS ");
+    printfrmt(symbol_token, FLAG_NL);
+}
+
+void gen_expression_operator(Token *const operation_token) {
+    printfrmt(operation_token, FLAG_NL);
 }
 
 void gen_variable_assignment_of_symbol(Token *const variable_token, Token *const symbol_token) {
     print("MOVE ");
-    print_formatted_token(variable_token, 0);
+    printfrmt(variable_token, 0);
     print(" ");
-    print_formatted_token(symbol_token, FLAG_NL);
+    printfrmt(symbol_token, FLAG_NL);
 }
 
-void gen_variable_assignment_of_function(Token *const variable_token) {
-    print("MOVE ");
-    print_formatted_token(variable_token, 0);
+void gen_variable_assignment_of_expression(Token *const variable_token) {
+    print("POPS ");
+    printfrmt(variable_token, FLAG_NL);
+}
+
+void gen_variable_dynamic_type_check(Token *const variable_token, Token *const data_type_token, Place place) {
+    print("TYPE ");
+    print(TMP1);
     print(" ");
-    println(RESULT_VAR);
+    println(variable_token->attribute);
+    print("JUMPIFEQ ");
+    printcnt("$dynamic_type_check", counters.data_type_check_cnt);
+    print(" ");
+    print(TMP1);
+    print(" string@");
+    printfrmt(data_type_token, FLAG_TYPE_ONLY | FLAG_NL);
+    print("EXIT ");
+    println(place == function ? "4" : "7");
+    printcnt("LABEL $dynamic_type_check", counters.data_type_check_cnt++);
+    printeol();
 }
 
 void gen_while_head() {
-    printcnt("LABEL while_head", counters.while_cnt);
+    printcnt("LABEL $while_head", counters.while_cnt);
     printeol();
 }
 
@@ -92,38 +118,40 @@ void gen_while_cond() {
     println("PUSHS bool@false"); // todo bude tam vzdy bool, alebo môže byť aj int? treba konverziu int2bool? toto záleží na tom ako sa budú spracovávať výrazi
     // todo "Pokud výsledná hodnota výrazu není pravdivostní (tj. pravda či nepravda - v základním zadání pouze jako výsledek aplikace relačních operátorů dle sekce 5.1), tak se hodnota null, prázdný řetězec, 0 a "0" považují za nepravdu a ostatní hodnoty jako pravda."
     // todo also bool je v základnom zadaní možné použiť iba ako podmienku a nie je možné s nim ďalej pracovať (napríklad ho ukladať do premennej)
-    printcnt("JUMPIFEQS while_tail", counters.while_cnt);
+    printcnt("JUMPIFEQS $while_tail", counters.while_cnt);
     printeol();
 }
 
 void gen_while_tail() {
-    printcnt("JUMP while_head", counters.while_cnt);
+    printcnt("JUMP $while_head", counters.while_cnt);
     printeol();
-    printcnt("LABEL while_tail", counters.while_cnt++);
+    printcnt("LABEL $while_tail", counters.while_cnt++);
     printeol();
 }
 
 void gen_if_head() { // todo rovnaký problém ako v gen_while_cond()
     print("POPS ");
-    println(RESULT_VAR);
-    printcnt("JUMPIFEQ if_tail GF@result", counters.if_cnt);
+    println(TMP1);
+    printcnt("JUMPIFEQ $if_tail", counters.if_cnt);
+    print(" ");
+    print(TMP1);
     println(" bool@false");
 }
 
 void gen_if_tail() {
-    printcnt("LABEL if_tail", counters.if_cnt++);
+    printcnt("LABEL $if_tail", counters.if_cnt++);
     printeol();
 }
 
 void gen_else_head() {
-    printcnt("JUMPIFEQ else_tail", counters.else_cnt);
+    printcnt("JUMPIFEQ $else_tail", counters.else_cnt);
     print(" ");
-    print(RESULT_VAR);
+    print(TMP1);
     println(" bool@true");
 }
 
 void gen_else_tail() {
-    printcnt("LABEL else_tail", counters.else_cnt++);
+    printcnt("LABEL $else_tail", counters.else_cnt++);
     printeol();
 }
 
@@ -141,11 +169,11 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
         LL_GetValue(symbol_token_list, symbol_token);
 
         print("DEFVAR ");
-        print_formatted_token(variable_token, FLAG_TF | FLAG_NL);
+        printfrmt(variable_token, FLAG_TF | FLAG_NL);
         print("MOVE ");
-        print_formatted_token(variable_token, FLAG_TF);
+        printfrmt(variable_token, FLAG_TF);
         print(" ");
-        print_formatted_token(symbol_token, FLAG_NL);
+        printfrmt(symbol_token, FLAG_NL);
 
         LL_Next(variable_token_list);
         LL_Next(symbol_token_list);
@@ -155,13 +183,20 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
     println(function_token->attribute);
 }
 
-void gen_function_definition(Token *const function_token) {
+void gen_function_definition_head(Token *const function_token) {
+    print("JUMP $$");
+    println(function_token->attribute);
     print("LABEL ");
     println(function_token->attribute);
     println("PUSHFRAME");
 }
 
-void gen_function_return() { // todo return value bude asi na vrchole zásobníku (záleží ako sa implementujú výrazi)
+void gen_function_definition_tail(Token *const function_token) {
+    print("LABEL $$");
+    println(function_token->attribute);
+}
+
+void gen_function_return() { // todo return void
     println("POPFRAME");
     println("RETURN");
 }
@@ -171,33 +206,53 @@ static void gen_built_in() {
 
     /* function reads() : ?string */
     strcpy(function_token.attribute, "reads");
-    gen_function_definition(&function_token);
+    gen_function_definition_head(&function_token);
     print("READ ");
-    print(RESULT_VAR);
+    println(TMP1);
     println(" string");
+    print("PUSHS ");
+    println(TMP1);
     gen_function_return();
+    gen_function_definition_tail(&function_token);
 
     /* function reads() : ?int */
     strcpy(function_token.attribute, "readi");
-    gen_function_definition(&function_token);
+    gen_function_definition_head(&function_token);
     print("READ ");
-    print(RESULT_VAR);
+    println(TMP1);
     println(" int");
+    print("PUSHS ");
+    println(TMP1);
     gen_function_return();
+    gen_function_definition_tail(&function_token);
 
     /* function reads() : ?float */
     strcpy(function_token.attribute, "readf");
-    gen_function_definition(&function_token);
+    gen_function_definition_head(&function_token);
     print("READ ");
-    print(RESULT_VAR);
+    println(TMP1);
     println(" float");
+    print("PUSHS ");
+    println(TMP1);
     gen_function_return();
+    gen_function_definition_tail(&function_token);
+
+    /* function write ( term ) : void
+     *
+     * (Dynamic number of parameters is not supported in ifj22
+     * and this function implementation defines just one
+     * argument - multiple calls have to be performed on
+     * syntax analysis level) */
+    strcpy(function_token.attribute, "write");
+    gen_function_definition_head(&function_token);
+    println("WRITE LF@term");
+    gen_function_return();
+    gen_function_definition_tail(&function_token);
 
     /* function strlen(string $s) : int */
 //    strcpy(function_token.attribute, "strlen");
 //    gen_function_definition(&function_token);
 //    print("STRLEN ");
-//    print(RESULT_VAR);
     // STRLEN ⟨var⟩ ⟨symb⟩
 }
 
@@ -231,7 +286,7 @@ static void print_formatted_token(Token *const token, char const flags) {
         case T_STRING_VAL:
             if (_FLAG_TYPE_ONLY) {
                 print("string");
-            } else { // Format string with scape sequences
+            } else { // Format string with escape sequences
                 print("string@");
                 char ch;
                 for (int i = 0; i < strlen(token->attribute); ++i) {
@@ -246,6 +301,39 @@ static void print_formatted_token(Token *const token, char const flags) {
             break;
         case T_NULL:
             print("nil@nil");
+            break;
+
+        /* ***  Operation stack instructions following:  *** */
+        case T_PLUS:
+            print("ADDS");
+            break;
+        case T_MINUS:
+            print("SUBS");
+            break;
+        case T_DIV:
+            print("DIVS");
+            break;
+        case T_MUL:
+            print("MULS");
+            break;
+        case T_CONCAT: // TODO
+            break;
+        case T_EQUAL: // todo
+        case T_NOT_EQUAL:
+
+
+            break;
+        case T_GREATER: // todo
+            print("S");
+            break;
+        case T_LESS: // todo
+            print("S");
+            break;
+        case T_GREATER_EQUAL: // todo
+            print("S");
+            break;
+        case T_LESS_EQUAL: // todo
+            print("S");
             break;
         default:
             // todo err exit (99 - internal compiler error) (zatiaľ neviem ako sa bude riešiť error handling)
