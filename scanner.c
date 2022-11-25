@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #include "scanner.h"
 
 bool head_detected = false;
@@ -28,12 +29,52 @@ int openFile(char *filename, FILE **file){
     return 0;
 }
 
+int octalToDecimal(int octal){
+    int decimal = 0;
+    int i = 0;
+
+    while(octal != 0){
+        decimal = decimal + (octal % 10) * pow(8, i++);
+        octal = octal / 10;
+    }
+
+    return decimal;
+}
+
+int hexaToDecimal(char *hexa){
+    int decimal = 0;
+    int i = 0;
+
+    int val;
+    int len = strlen(hexa);
+    len--;
+
+    while(hexa[i] != '\0'){
+        if(hexa[i] >= '0' && hexa[i] <= '9'){
+            val = hexa[i] - 48;
+
+        }else if(hexa[i] >= 'a' && hexa[i] <= 'f'){
+            val = hexa[i] - 97 + 10;
+
+        }else if(hexa[i] >= 'A' && hexa[i] <= 'F'){
+            val = hexa[i] - 65 + 10;
+        }
+
+        decimal += val * pow(16,len);
+        len--;
+        i++; 
+    }
+
+    return decimal;
+}
 
 int getToken(FILE *file, Token *token){
 
     char curr_char;
     State curr_state = STATE_START;
     char str[1000];
+    char oct[10];
+    char hex[10];
     strcpy(str,"");
 
     while(true){
@@ -376,7 +417,7 @@ int getToken(FILE *file, Token *token){
                 curr_state = STATE_FINAL;
 
             }else if(curr_char == '\\'){
-                strncat(str, &curr_char,1);
+
                 curr_state = STATE_ESC_SEQ;
 
             }else if(curr_char == EOF){
@@ -388,65 +429,86 @@ int getToken(FILE *file, Token *token){
             break;
         case STATE_ESC_SEQ:
             if(curr_char == 'x'){
-                strncat(str, &curr_char, 1);
+                
                 curr_state = STATE_ESC_SEQ_HEX_1;
+
             }else if(curr_char == 'n' || curr_char == '"' || curr_char == 't' || curr_char == '\\' || curr_char == '$'){
-                //Bude možno potrebná modifikácia
+                
                 if(curr_char == 'n'){
-                    strncat(str, &curr_char,1);
-                    //Pre zápis konkrétneho konca riadku
-                    //strcat(str,"\n")
-                }else if(curr_char == '"'){
+                    strcat(str,"\n");
+                }else if(curr_char == '"'){    
                     strncat(str, &curr_char, 1);
                 }else if(curr_char == 't'){
-                    strncat(str, &curr_char, 1);
+                    strcat(str,"\t");
                 }else if(curr_char == '\\'){
-                    strncat(str, &curr_char, 1);
+                    strcat(str, "\\");
                 }else if(curr_char == '$'){
                     strncat(str, &curr_char, 1);
                 }
                 curr_state = STATE_STRING_START;
             }else if(curr_char >= '0' && curr_char <= '3'){
-                strncat(str, &curr_char,1);
+                strncat(oct, &curr_char,1);
                 curr_state = STATE_ESC_SEQ_OCT_1;
             }else{
+                strcat(str,"\\");
+                strncat(str, &curr_char,1);
                 curr_state = STATE_STRING_START;
             }
             break;
         case STATE_ESC_SEQ_OCT_1:
             if(curr_char >= '0' && curr_char < '8'){
-                strncat(str, &curr_char,1);
+                strncat(oct, &curr_char,1);
                 curr_state = STATE_ESC_SEQ_OCT_2;
             }else{
-                //Chyba
-                return 1;
+                strcat(str,"\\");
+                strncat(oct, &curr_char,1);
+                strcat(str, oct);
+                strcpy(oct, "");
+                curr_state = STATE_STRING_START;
             }
             break;
         case STATE_ESC_SEQ_OCT_2:
             if(curr_char >= '0' && curr_char < '8'){
-                strncat(str, &curr_char,1);
-                curr_state = STATE_FINAL;
+                strncat(oct, &curr_char,1);
+
+                char c = (char)octalToDecimal(atoi(oct));
+                strncat(str, &c, 1);
+
+                strcpy(oct, "");
+                curr_state = STATE_STRING_START;
             }else{
-                //Chyba
-                return 1;
+                strcat(str,"\\");
+                strcat(str, oct);
+                strcpy(oct, "");
+                curr_state = STATE_STRING_START;
             }
             break;
         case STATE_ESC_SEQ_HEX_1:
-            if(isdigit(curr_char)){
-                strncat(str, &curr_char,1);
+            if(isdigit(curr_char) || (curr_char >= 'a' && curr_char <= 'f') || (curr_char >= 'A' && curr_char <= 'F')){
+                strncat(hex, &curr_char,1);
                 curr_state = STATE_ESC_SEQ_HEX_2;
             }else{
-                //Chyba
-                return 1;
+                strcat(str,"\\x");
+                strncat(str, &curr_char,1);
+                strcpy(hex,"");
+                curr_state = STATE_STRING_START;
             }
             break;
         case STATE_ESC_SEQ_HEX_2:
-            if (isdigit(curr_char)){
-                strncat(str, &curr_char,1);
-                curr_state = STATE_FINAL;
+            if (isdigit(curr_char) || (curr_char >= 'a' && curr_char <= 'f') || (curr_char >= 'A' && curr_char <= 'F')){
+                strncat(hex, &curr_char,1);
+
+                char c = (char)hexaToDecimal(hex);
+                strncat(str, &c,1);
+
+                strcpy(hex,"");
+                curr_state = STATE_STRING_START;
             }else{
-                //Chyba
-                return 1;
+                strcat(str, "\\x");
+                strcat(str, hex);
+                strncat(str, &curr_char,1);
+                strcpy(hex, "");
+                curr_state = STATE_STRING_START;
             }
             break;
         default:
