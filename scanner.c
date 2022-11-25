@@ -417,7 +417,7 @@ int getToken(FILE *file, Token *token){
                 curr_state = STATE_FINAL;
 
             }else if(curr_char == '\\'){
-
+                
                 curr_state = STATE_ESC_SEQ;
 
             }else if(curr_char == EOF){
@@ -429,7 +429,7 @@ int getToken(FILE *file, Token *token){
             break;
         case STATE_ESC_SEQ:
             if(curr_char == 'x'){
-                
+        
                 curr_state = STATE_ESC_SEQ_HEX_1;
 
             }else if(curr_char == 'n' || curr_char == '"' || curr_char == 't' || curr_char == '\\' || curr_char == '$'){
@@ -451,7 +451,7 @@ int getToken(FILE *file, Token *token){
                 curr_state = STATE_ESC_SEQ_OCT_1;
             }else{
                 strcat(str,"\\");
-                strncat(str, &curr_char,1);
+                ungetc(curr_char, file);
                 curr_state = STATE_STRING_START;
             }
             break;
@@ -461,7 +461,8 @@ int getToken(FILE *file, Token *token){
                 curr_state = STATE_ESC_SEQ_OCT_2;
             }else{
                 strcat(str,"\\");
-                strncat(oct, &curr_char,1);
+                ungetc(curr_char,file);
+                
                 strcat(str, oct);
                 strcpy(oct, "");
                 curr_state = STATE_STRING_START;
@@ -480,6 +481,7 @@ int getToken(FILE *file, Token *token){
                 strcat(str,"\\");
                 strcat(str, oct);
                 strcpy(oct, "");
+                ungetc(curr_char,file);
                 curr_state = STATE_STRING_START;
             }
             break;
@@ -489,7 +491,7 @@ int getToken(FILE *file, Token *token){
                 curr_state = STATE_ESC_SEQ_HEX_2;
             }else{
                 strcat(str,"\\x");
-                strncat(str, &curr_char,1);
+                ungetc(curr_char,file);
                 strcpy(hex,"");
                 curr_state = STATE_STRING_START;
             }
@@ -506,7 +508,7 @@ int getToken(FILE *file, Token *token){
             }else{
                 strcat(str, "\\x");
                 strcat(str, hex);
-                strncat(str, &curr_char,1);
+                ungetc(curr_char,file);
                 strcpy(hex, "");
                 curr_state = STATE_STRING_START;
             }
