@@ -13,6 +13,8 @@
 #include <ctype.h>
 #include "scanner.h"
 
+bool head_detected = false;
+
 int openFile(char *filename, FILE **file){
 
     if(filename == NULL){
@@ -134,15 +136,25 @@ int getToken(FILE *file, Token *token){
                 curr_state = STATE_INTEGER_VAL;
 
             }else if(curr_char == EOF){
-                token->type = T_EOF;
-                curr_state = STATE_FINAL;
 
+                if(!head_detected){
+                    return 1;
+                }else{
+                    token->type = T_EOF;
+                    curr_state = STATE_FINAL;
+                }
+            }else{
+                //Chyba
+                return 1;
             }
             break;
 
         case STATE_LINE_COMMENT:
             if(curr_char == '\n'){
                 curr_state = STATE_START;
+            }else if(curr_char == EOF){
+                token->type = T_EOF;
+                curr_state = STATE_FINAL;
             }
             break;
 
@@ -154,6 +166,10 @@ int getToken(FILE *file, Token *token){
                 }else{
                     ungetc(curr_char,file);
                 }
+            }else if(curr_char == EOF){
+
+                //Chyba
+                return 1;
             }
             break;
 
@@ -205,6 +221,7 @@ int getToken(FILE *file, Token *token){
                 curr_state = STATE_FINAL;
                 token->type = T_HEAD;
                 strcpy(str, "<?php");
+                head_detected = true;
             }else{
                 //Chyba
                 return 1;
@@ -237,6 +254,8 @@ int getToken(FILE *file, Token *token){
                 token->type = T_EQUAL;
                 curr_state = STATE_FINAL;
             }else{
+
+                //Chyba
                 return 1;
             }
             break;
@@ -294,7 +313,7 @@ int getToken(FILE *file, Token *token){
 
             }else if(curr_char == '.'){
                 strncat(str, &curr_char,1);
-                curr_state = STATE_FLOAT_VAL;
+                curr_state = STATE_FLOAT_DOT;
 
             }else if(curr_char == 'e' || curr_char == 'E'){
                 strncat(str, &curr_char, 1);
@@ -304,6 +323,16 @@ int getToken(FILE *file, Token *token){
                 ungetc(curr_char, file);
                 token->type = T_INT_VAL;
                 curr_state = STATE_FINAL;
+            }
+            break;
+
+        case STATE_FLOAT_DOT:
+            if(isdigit(curr_char)){
+                strncat(str, &curr_char,1);
+                curr_state = STATE_FLOAT_VAL;
+            }else{
+                //Chyba
+                return 1;
             }
             break;
 
@@ -350,6 +379,9 @@ int getToken(FILE *file, Token *token){
                 strncat(str, &curr_char,1);
                 curr_state = STATE_ESC_SEQ;
 
+            }else if(curr_char == EOF){
+                //Chyba
+                return 1;
             }else{
                 strncat(str, &curr_char, 1);
             }
@@ -416,8 +448,10 @@ int getToken(FILE *file, Token *token){
                 //Chyba
                 return 1;
             }
-            
+            break;
         default:
+            //Chyba
+            return 1;
             break;
         }
         
