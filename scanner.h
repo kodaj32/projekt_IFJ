@@ -73,7 +73,8 @@ typedef enum state{
 typedef enum t_type{
     
     T_HEAD,             //<?php
-    T_PROLOG,           //?>
+                        //declare(strict_types=1)
+    T_EPILOGUE,           //?>
 
     //Keywords:
     T_ELSE,             //else
