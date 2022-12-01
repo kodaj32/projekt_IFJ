@@ -68,6 +68,156 @@ int hexaToDecimal(char *hexa){
     return decimal;
 }
 
+//TODO
+int detectHead(FILE *file){
+
+    char curr_char;
+    char *head = "<?php\ndeclare(strict_types=1);";
+    char tmp[30];
+    char str[40] = "";
+    bool is_new_line = false;
+    State state = STATE_HEAD_1;
+    
+
+    while (1){
+        curr_char = fgetc(file);
+
+        switch (state){
+
+            case STATE_START:
+
+                if(curr_char == 'd' && is_new_line){
+
+                    state = STATE_HEAD_2;
+                    ungetc(curr_char, file);
+
+                }else if(curr_char == 's'){
+
+                    state = STATE_HEAD_3;
+                    ungetc(curr_char, file);
+
+                }else if(curr_char == '(' || curr_char == ')' || curr_char == '=' || isdigit(curr_char)){
+
+                    strncat(str, &curr_char, 1);
+
+                }else if(curr_char == '\n'){
+
+                    if(!is_new_line){
+                        strcat(str, "\n");
+                    }
+                    is_new_line = true;
+
+                }else if(isspace(curr_char)){
+
+                    break;
+
+                }else if(curr_char == '/'){
+
+                    curr_char = fgetc(file);
+
+                    if (curr_char == '/'){
+
+                        state = STATE_LINE_COMMENT;
+
+                    }else if(curr_char == '*'){
+
+                        state = STATE_BLOCK_COMMENT;
+
+                    }else{
+
+                        return 1;
+                    }
+
+                }else if(curr_char == ';'){
+                    strncat(str, &curr_char,1);
+                    state = STATE_FINAL;
+                }
+                break;
+            
+            case STATE_HEAD_1:
+
+                strcpy(tmp,"?php");
+
+                    if(curr_char == '<'){
+                        for (int i = 0; i < (int)strlen(tmp); i++){
+                            curr_char = fgetc(file);
+                            if (tmp[i] != curr_char){
+
+                                return 1;
+                            }   
+                        }
+                    }else{
+                        return 1;
+                    }
+
+                    strcat(str,"<?php");
+                    state = STATE_START;
+                break;
+
+            case STATE_HEAD_2:
+
+                strcpy(tmp, "declare");
+                
+                for (int i = 1; i < (int)strlen(tmp); i++){
+                    curr_char = fgetc(file);
+                    if (tmp[i] != curr_char){
+                        return 1;
+                    }   
+                }
+                strcat(str,"declare");
+                state = STATE_START;
+
+                break;
+
+            case STATE_HEAD_3:
+
+                strcpy(tmp, "strict_types");
+                
+                for (int i = 1; i < (int)strlen(tmp); i++){
+                    if (tmp[i] != fgetc(file)){
+                        return 1;
+                    }   
+                }
+                strcat(str,"strict_types");
+                state = STATE_START;
+
+                break;  
+
+            case STATE_LINE_COMMENT:
+                if(curr_char == '\n'){
+                    state = STATE_START;
+                }
+                break;
+
+            case STATE_BLOCK_COMMENT:
+
+                if(curr_char == '*'){
+                    curr_char = getc(file);
+                    if(curr_char == '/'){
+                        state = STATE_START;
+                    }else{
+                        ungetc(curr_char,file);
+                    }
+                }else if(curr_char == EOF){
+
+                    return 1;
+                }
+                break;
+
+            default:
+                break;
+            }
+
+        if(state == STATE_FINAL){
+            if(strcmp(head,str) != 0){
+                return 0;
+            }
+            break;
+        }
+    }
+    return 0;
+}
+
 int getToken(FILE *file, Token *token){
 
     char curr_char;
@@ -77,453 +227,466 @@ int getToken(FILE *file, Token *token){
     char hex[10];
     strcpy(str,"");
 
-    while(true){
-        curr_char = getc(file);
+    if(!head_detected){
 
-        switch (curr_state)
-        {
-        case STATE_START:
-            if (curr_char == '+')
-            {
-                token->type = T_PLUS;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '-')
-            {
-                token->type = T_MINUS;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '*')
-            {
-                token->type = T_MUL;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '/')
-            {   
-                curr_char = getc(file);
-                if(curr_char == '/'){
-                    curr_state = STATE_LINE_COMMENT;
-                }else if(curr_char == '*'){
-                    curr_state = STATE_BLOCK_COMMENT;
-                }
-                else{
-                    token->type = T_DIV;
-                    curr_state = STATE_FINAL;
-                }
-                
-            }else if(curr_char == '.'){
-                token->type = T_CONCAT;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == ','){
-                token->type = T_COMMA;
-                curr_state = STATE_FINAL;
-                
-            }else if(curr_char == '('){
-                token->type = T_L_BRACKET;
-                curr_state = STATE_FINAL;
-
-            }else if (curr_char == ')'){
-                token->type = T_R_BRACKET;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '{'){
-                token->type = T_L_CUR_BRACKET;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '}'){
-                token->type = T_R_CUR_BRACKET;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '='){
-                curr_state = STATE_ASSIGN;
-
-            }else if(curr_char == '!'){
-                curr_state = STATE_NOT;
-
-            }else if(curr_char == '?'){
-                curr_state = STATE_Q_MARK;
-
-            }else if(curr_char == ':'){
-                token->type = T_DOUBLE_DOT;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '$'){
-                token->type = T_VAR_ID;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '>'){
-                curr_state = STATE_GREATER;
-
-            }else if(curr_char == '<'){
-                curr_state = STATE_LESS;
-
-            }else if(curr_char == ';'){
-                token->type = T_SEMICOLON;
-                curr_state = STATE_FINAL;
-            }
-            else if(isspace(curr_char)){
-                curr_state = STATE_START;
-
-            }else if(curr_char == '"'){
-                curr_state = STATE_STRING_START;
-
-            }else if(curr_char == '_' || isalpha(curr_char)){
-                strncat(str, &curr_char, 1);
-                curr_state = STATE_ID;
-
-            }else if(isdigit(curr_char)){
-                strncat(str, &curr_char, 1);
-                curr_state = STATE_INTEGER_VAL;
-
-            }else if(curr_char == EOF){
-
-                if(!head_detected){
-                    return 1;
-                }else{
-                    token->type = T_EOF;
-                    curr_state = STATE_FINAL;
-                }
-            }else{
-                //Chyba
-                return 1;
-            }
-            break;
-
-        case STATE_LINE_COMMENT:
-            if(curr_char == '\n'){
-                curr_state = STATE_START;
-            }else if(curr_char == EOF){
-                token->type = T_EOF;
-                curr_state = STATE_FINAL;
-            }
-            break;
-
-        case STATE_BLOCK_COMMENT:
-            if(curr_char == '*'){
-                curr_char = getc(file);
-                if(curr_char == '/'){
-                    curr_state = STATE_START;
-                }else{
-                    ungetc(curr_char,file);
-                }
-            }else if(curr_char == EOF){
-
-                //Chyba
-                return 1;
-            }
-            break;
-
-        case STATE_LESS:
-            if(curr_char == '='){
-                token->type = T_LESS_EQUAL;
-                curr_state = STATE_FINAL;
-                
-            }else if(curr_char == '?'){  
-                curr_state = STATE_HEAD_1;
-
-            }else{
-                ungetc(curr_char, file);
-                token->type = T_LESS;
-                curr_state = STATE_FINAL;
-            }
-            break;
-            
-        case STATE_Q_MARK:
-            if(curr_char == '>'){
-                token->type = T_PROLOG;
-                
-            }else{
-                token->type = T_TYPE_ID;
-            }
-            curr_state = STATE_FINAL;
-            break;
-
-        case STATE_HEAD_1:
-            if(curr_char == 'p'){
-                curr_state = STATE_HEAD_2;
-            }else{
-                //Chyba
-                return 1;
-            }
-            break;
-
-        case STATE_HEAD_2:
-            if(curr_char == 'h'){
-                curr_state = STATE_HEAD_3;
-            }else{
-                //Chyba
-                return 1;
-            }
-            break;
-
-        case STATE_HEAD_3:
-            if(curr_char == 'p'){
-                curr_state = STATE_FINAL;
-                token->type = T_HEAD;
-                strcpy(str, "<?php");
-                head_detected = true;
-            }else{
-                //Chyba
-                return 1;
-            }
-            break;
-
-        case STATE_GREATER:
-            if(curr_char == '='){
-                token->type = T_GREATER_EQUAL;
-            }else{
-                ungetc(curr_char, file);
-                token->type = T_GREATER;
-            }
-            curr_state = STATE_FINAL;
-            break;
-
-        case STATE_ASSIGN:
-            if(curr_char == '='){
-                curr_state = STATE_NEAR_ASSIGN;
-            }else{
-                ungetc(curr_char,file);
-                token->type = T_ASSIGN;
-                curr_state = STATE_FINAL;
-            }
-
-            break;
-
-        case STATE_NEAR_ASSIGN:
-            if(curr_char == '='){
-                token->type = T_EQUAL;
-                curr_state = STATE_FINAL;
-            }else{
-
-                //Chyba
-                return 1;
-            }
-            break;
-        case STATE_NOT:
-            if(curr_char == '='){
-                curr_state = STATE_NEAR_NOT_EQUAL;
-            }else{
-                return 1;   
-            }
-            break;
-        case  STATE_NEAR_NOT_EQUAL:
-            if(curr_char == '='){
-                token->type = T_NOT_EQUAL;
-                curr_state = STATE_FINAL;
-            }else{
-                return 1;
-            }
-            break;
-        case STATE_ID:
-            if(curr_char == '_' || isalpha(curr_char) || isdigit(curr_char)){
-                strncat(str, &curr_char, 1);
-
-            }else{
-                ungetc(curr_char, file);
-                curr_state = STATE_FINAL;
-
-                if(strcmp(str, "else") == 0) 
-                    token->type = T_ELSE;
-                else if(strcmp(str, "if") == 0) 
-                    token->type = T_IF;
-                else if(strcmp(str,"return") == 0) 
-                    token->type = T_RETURN;
-                else if(strcmp(str,"while") == 0) 
-                    token->type = T_WHILE;
-                else if(strcmp(str,"function") == 0)    
-                    token->type = T_FUNCTION;
-                else if(strcmp(str,"int") == 0) 
-                    token->type = T_INT;
-                else if(strcmp(str,"float") == 0) 
-                    token->type = T_FLOAT;
-                else if(strcmp(str,"string") == 0) 
-                    token->type = T_STRING;
-                else if(strcmp(str,"void") == 0) 
-                    token->type = T_VOID;
-                else if(strcmp(str, "null") == 0)
-                    token->type = T_NULL;
-                else{
-                    token->type = T_ID;
-                }
-            }
-            break;
-        case STATE_INTEGER_VAL:
-            if(isdigit(curr_char)){
-                strncat(str,&curr_char,1);
-
-            }else if(curr_char == '.'){
-                strncat(str, &curr_char,1);
-                curr_state = STATE_FLOAT_DOT;
-
-            }else if(curr_char == 'e' || curr_char == 'E'){
-                strncat(str, &curr_char, 1);
-                curr_state = STATE_FLOAT_EXP;
-
-            }else{
-                ungetc(curr_char, file);
-                token->type = T_INT_VAL;
-                curr_state = STATE_FINAL;
-            }
-            break;
-
-        case STATE_FLOAT_DOT:
-            if(isdigit(curr_char)){
-                strncat(str, &curr_char,1);
-                curr_state = STATE_FLOAT_VAL;
-            }else{
-                //Chyba
-                return 1;
-            }
-            break;
-
-        case STATE_FLOAT_VAL:
-            if(isdigit(curr_char)){
-                strncat(str, &curr_char, 1);
-            }else if(curr_char == 'e' || curr_char == 'E'){
-                strncat(str,&curr_char,1);
-                curr_state = STATE_FLOAT_EXP;
-            }else{
-                ungetc(curr_char, file);
-                token->type = T_FLOAT_VAL;
-                curr_state = STATE_FINAL;
-            }
-            break;
-
-        case STATE_FLOAT_EXP:
-            if(curr_char == '+' || curr_char == '-' || isdigit(curr_char)){
-                strncat(str, &curr_char, 1);
-                curr_state = STATE_FLOAT_EXP_VAL;
-            }else{
-                //Chyba
-                return 1;
-            }
-            break;
-
-        case STATE_FLOAT_EXP_VAL:
-            if(isdigit(curr_char)){
-                strncat(str, &curr_char, 1);
-
-            }else{
-                ungetc(curr_char, file);    
-                token->type = T_FLOAT_EXP_VAL;
-                curr_state = STATE_FINAL;
-            }
-            break;
-
-        case STATE_STRING_START:
-            if(curr_char == '"'){
-                token->type = T_STRING_VAL;
-                curr_state = STATE_FINAL;
-
-            }else if(curr_char == '\\'){
-                
-                curr_state = STATE_ESC_SEQ;
-
-            }else if(curr_char == EOF){
-                //Chyba
-                return 1;
-            }else{
-                strncat(str, &curr_char, 1);
-            }
-            break;
-        case STATE_ESC_SEQ:
-            if(curr_char == 'x'){
-        
-                curr_state = STATE_ESC_SEQ_HEX_1;
-
-            }else if(curr_char == 'n' || curr_char == '"' || curr_char == 't' || curr_char == '\\' || curr_char == '$'){
-                
-                if(curr_char == 'n'){
-                    strcat(str,"\n");
-                }else if(curr_char == '"'){    
-                    strncat(str, &curr_char, 1);
-                }else if(curr_char == 't'){
-                    strcat(str,"\t");
-                }else if(curr_char == '\\'){
-                    strcat(str, "\\");
-                }else if(curr_char == '$'){
-                    strncat(str, &curr_char, 1);
-                }
-                curr_state = STATE_STRING_START;
-            }else if(curr_char >= '0' && curr_char <= '3'){
-                strncat(oct, &curr_char,1);
-                curr_state = STATE_ESC_SEQ_OCT_1;
-            }else{
-                strcat(str,"\\");
-                ungetc(curr_char, file);
-                curr_state = STATE_STRING_START;
-            }
-            break;
-        case STATE_ESC_SEQ_OCT_1:
-            if(curr_char >= '0' && curr_char < '8'){
-                strncat(oct, &curr_char,1);
-                curr_state = STATE_ESC_SEQ_OCT_2;
-            }else{
-                strcat(str,"\\");
-                ungetc(curr_char,file);
-                
-                strcat(str, oct);
-                strcpy(oct, "");
-                curr_state = STATE_STRING_START;
-            }
-            break;
-        case STATE_ESC_SEQ_OCT_2:
-            if(curr_char >= '0' && curr_char < '8'){
-                strncat(oct, &curr_char,1);
-
-                char c = (char)octalToDecimal(atoi(oct));
-                strncat(str, &c, 1);
-
-                strcpy(oct, "");
-                curr_state = STATE_STRING_START;
-            }else{
-                strcat(str,"\\");
-                strcat(str, oct);
-                strcpy(oct, "");
-                ungetc(curr_char,file);
-                curr_state = STATE_STRING_START;
-            }
-            break;
-        case STATE_ESC_SEQ_HEX_1:
-            if(isdigit(curr_char) || (curr_char >= 'a' && curr_char <= 'f') || (curr_char >= 'A' && curr_char <= 'F')){
-                strncat(hex, &curr_char,1);
-                curr_state = STATE_ESC_SEQ_HEX_2;
-            }else{
-                strcat(str,"\\x");
-                ungetc(curr_char,file);
-                strcpy(hex,"");
-                curr_state = STATE_STRING_START;
-            }
-            break;
-        case STATE_ESC_SEQ_HEX_2:
-            if (isdigit(curr_char) || (curr_char >= 'a' && curr_char <= 'f') || (curr_char >= 'A' && curr_char <= 'F')){
-                strncat(hex, &curr_char,1);
-
-                char c = (char)hexaToDecimal(hex);
-                strncat(str, &c,1);
-
-                strcpy(hex,"");
-                curr_state = STATE_STRING_START;
-            }else{
-                strcat(str, "\\x");
-                strcat(str, hex);
-                ungetc(curr_char,file);
-                strcpy(hex, "");
-                curr_state = STATE_STRING_START;
-            }
-            break;
-        default:
-            //Chyba
-            return 1;
-            break;
+        if(!detectHead(file)){
+            head_detected = true;
+            token->type = T_HEAD;
+        }else{
+           return 1; 
         }
-        
-        if(curr_state == STATE_FINAL){
-            strcpy(token->attribute,str);
-            break;
+
+    }else{
+        while(true){
+            curr_char = getc(file);
+
+            switch (curr_state)
+            {
+                case STATE_START:
+                    if (curr_char == '+')
+                    {
+                        token->type = T_PLUS;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '-')
+                    {
+                        token->type = T_MINUS;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '*')
+                    {
+                        token->type = T_MUL;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '/')
+                    {   
+                        curr_char = getc(file);
+                        if(curr_char == '/'){
+                            curr_state = STATE_LINE_COMMENT;
+                        }else if(curr_char == '*'){
+                            curr_state = STATE_BLOCK_COMMENT;
+                        }
+                        else{
+                            token->type = T_DIV;
+                            curr_state = STATE_FINAL;
+                        }
+                        
+                    }else if(curr_char == '.'){
+                        token->type = T_CONCAT;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == ','){
+                        token->type = T_COMMA;
+                        curr_state = STATE_FINAL;
+                        
+                    }else if(curr_char == '('){
+                        token->type = T_L_BRACKET;
+                        curr_state = STATE_FINAL;
+
+                    }else if (curr_char == ')'){
+                        token->type = T_R_BRACKET;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '{'){
+                        token->type = T_L_CUR_BRACKET;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '}'){
+                        token->type = T_R_CUR_BRACKET;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '='){
+                        curr_state = STATE_ASSIGN;
+
+                    }else if(curr_char == '!'){
+                        curr_state = STATE_NOT;
+
+                    }else if(curr_char == '?'){
+                        curr_state = STATE_Q_MARK;
+
+                    }else if(curr_char == ':'){
+                        token->type = T_DOUBLE_DOT;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '$'){
+                        token->type = T_VAR_ID;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '>'){
+                        curr_state = STATE_GREATER;
+
+                    }else if(curr_char == '<'){
+                        curr_state = STATE_LESS;
+
+                    }else if(curr_char == ';'){
+                        token->type = T_SEMICOLON;
+                        curr_state = STATE_FINAL;
+                    }
+                    else if(isspace(curr_char)){
+                        curr_state = STATE_START;
+
+                    }else if(curr_char == '"'){
+                        curr_state = STATE_STRING_START;
+
+                    }else if(curr_char == '_' || isalpha(curr_char)){
+                        strncat(str, &curr_char, 1);
+                        curr_state = STATE_ID;
+
+                    }else if(isdigit(curr_char)){
+                        strncat(str, &curr_char, 1);
+                        curr_state = STATE_INTEGER_VAL;
+
+                    }else if(curr_char == EOF){
+
+                        if(!head_detected){
+                            return 1;
+                        }else{
+                            token->type = T_EOF;
+                            curr_state = STATE_FINAL;
+                        }
+                    }else{
+                        //Chyba
+                        return 1;
+                    }
+                    break;
+
+                case STATE_LINE_COMMENT:
+                    if(curr_char == '\n'){
+                        curr_state = STATE_START;
+                    }else if(curr_char == EOF){
+                        token->type = T_EOF;
+                        curr_state = STATE_FINAL;
+                    }
+                    break;
+
+                case STATE_BLOCK_COMMENT:
+                    if(curr_char == '*'){
+                        curr_char = getc(file);
+                        if(curr_char == '/'){
+                            curr_state = STATE_START;
+                        }else{
+                            ungetc(curr_char,file);
+                        }
+                    }else if(curr_char == EOF){
+
+                        //Chyba
+                        return 1;
+                    }
+                    break;
+
+                case STATE_LESS:
+                    if(curr_char == '='){
+                        token->type = T_LESS_EQUAL;
+                        curr_state = STATE_FINAL;
+                        
+                    }else if(curr_char == '?'){  
+                        curr_state = STATE_HEAD_1;
+
+                    }else{
+                        ungetc(curr_char, file);
+                        token->type = T_LESS;
+                        curr_state = STATE_FINAL;
+                    }
+                    break;
+                    
+                case STATE_Q_MARK:
+                    if(curr_char == '>'){
+                        token->type = T_EPILOGUE;
+                        
+                    }else{
+                        token->type = T_TYPE_ID;
+                    }
+                    curr_state = STATE_FINAL;
+                    break;
+
+                case STATE_HEAD_1:
+                    if(curr_char == 'p'){
+                        curr_state = STATE_HEAD_2;
+                    }else{
+                        //Chyba
+                        return 1;
+                    }
+                    break;
+
+                case STATE_HEAD_2:
+                    if(curr_char == 'h'){
+                        curr_state = STATE_HEAD_3;
+                    }else{
+                        //Chyba
+                        return 1;
+                    }
+                    break;
+
+                case STATE_HEAD_3:
+                    if(curr_char == 'p'){
+                        curr_state = STATE_FINAL;
+                        token->type = T_HEAD;
+                        strcpy(str, "<?php");
+                        head_detected = true;
+                    }else{
+                        //Chyba
+                        return 1;
+                    }
+                    break;
+
+                case STATE_GREATER:
+                    if(curr_char == '='){
+                        token->type = T_GREATER_EQUAL;
+                    }else{
+                        ungetc(curr_char, file);
+                        token->type = T_GREATER;
+                    }
+                    curr_state = STATE_FINAL;
+                    break;
+
+                case STATE_ASSIGN:
+                    if(curr_char == '='){
+                        curr_state = STATE_NEAR_ASSIGN;
+                    }else{
+                        ungetc(curr_char,file);
+                        token->type = T_ASSIGN;
+                        curr_state = STATE_FINAL;
+                    }
+
+                    break;
+
+                case STATE_NEAR_ASSIGN:
+                    if(curr_char == '='){
+                        token->type = T_EQUAL;
+                        curr_state = STATE_FINAL;
+                    }else{
+
+                        //Chyba
+                        return 1;
+                    }
+                    break;
+                case STATE_NOT:
+                    if(curr_char == '='){
+                        curr_state = STATE_NEAR_NOT_EQUAL;
+                    }else{
+                        return 1;   
+                    }
+                    break;
+                case  STATE_NEAR_NOT_EQUAL:
+                    if(curr_char == '='){
+                        token->type = T_NOT_EQUAL;
+                        curr_state = STATE_FINAL;
+                    }else{
+                        return 1;
+                    }
+                    break;
+                case STATE_ID:
+                    if(curr_char == '_' || isalpha(curr_char) || isdigit(curr_char)){
+                        strncat(str, &curr_char, 1);
+
+                    }else{
+                        ungetc(curr_char, file);
+                        curr_state = STATE_FINAL;
+
+                        if(strcmp(str, "else") == 0) 
+                            token->type = T_ELSE;
+                        else if(strcmp(str, "if") == 0) 
+                            token->type = T_IF;
+                        else if(strcmp(str,"return") == 0) 
+                            token->type = T_RETURN;
+                        else if(strcmp(str,"while") == 0) 
+                            token->type = T_WHILE;
+                        else if(strcmp(str,"function") == 0)    
+                            token->type = T_FUNCTION;
+                        else if(strcmp(str,"int") == 0) 
+                            token->type = T_INT;
+                        else if(strcmp(str,"float") == 0) 
+                            token->type = T_FLOAT;
+                        else if(strcmp(str,"string") == 0) 
+                            token->type = T_STRING;
+                        else if(strcmp(str,"void") == 0) 
+                            token->type = T_VOID;
+                        else if(strcmp(str, "null") == 0)
+                            token->type = T_NULL;
+                        else{
+                            token->type = T_ID;
+                        }
+                    }
+                    break;
+                case STATE_INTEGER_VAL:
+                    if(isdigit(curr_char)){
+                        strncat(str,&curr_char,1);
+
+                    }else if(curr_char == '.'){
+                        strncat(str, &curr_char,1);
+                        curr_state = STATE_FLOAT_DOT;
+
+                    }else if(curr_char == 'e' || curr_char == 'E'){
+                        strncat(str, &curr_char, 1);
+                        curr_state = STATE_FLOAT_EXP;
+
+                    }else{
+                        ungetc(curr_char, file);
+                        token->type = T_INT_VAL;
+                        curr_state = STATE_FINAL;
+                    }
+                    break;
+
+                case STATE_FLOAT_DOT:
+                    if(isdigit(curr_char)){
+                        strncat(str, &curr_char,1);
+                        curr_state = STATE_FLOAT_VAL;
+                    }else{
+                        //Chyba
+                        return 1;
+                    }
+                    break;
+
+                case STATE_FLOAT_VAL:
+                    if(isdigit(curr_char)){
+                        strncat(str, &curr_char, 1);
+                    }else if(curr_char == 'e' || curr_char == 'E'){
+                        strncat(str,&curr_char,1);
+                        curr_state = STATE_FLOAT_EXP;
+                    }else{
+                        ungetc(curr_char, file);
+                        token->type = T_FLOAT_VAL;
+                        curr_state = STATE_FINAL;
+                    }
+                    break;
+
+                case STATE_FLOAT_EXP:
+                    if(curr_char == '+' || curr_char == '-' || isdigit(curr_char)){
+                        strncat(str, &curr_char, 1);
+                        curr_state = STATE_FLOAT_EXP_VAL;
+                    }else{
+                        //Chyba
+                        return 1;
+                    }
+                    break;
+
+                case STATE_FLOAT_EXP_VAL:
+                    if(isdigit(curr_char)){
+                        strncat(str, &curr_char, 1);
+
+                    }else{
+                        ungetc(curr_char, file);    
+                        token->type = T_FLOAT_EXP_VAL;
+                        curr_state = STATE_FINAL;
+                    }
+                    break;
+
+                case STATE_STRING_START:
+                    if(curr_char == '"'){
+                        token->type = T_STRING_VAL;
+                        curr_state = STATE_FINAL;
+
+                    }else if(curr_char == '\\'){
+                        
+                        curr_state = STATE_ESC_SEQ;
+
+                    }else if(curr_char == EOF){
+                        //Chyba
+                        return 1;
+                    }else{
+                        strncat(str, &curr_char, 1);
+                    }
+                    break;
+                case STATE_ESC_SEQ:
+                    if(curr_char == 'x'){
+                
+                        curr_state = STATE_ESC_SEQ_HEX_1;
+
+                    }else if(curr_char == 'n' || curr_char == '"' || curr_char == 't' || curr_char == '\\' || curr_char == '$'){
+                        
+                        if(curr_char == 'n'){
+                            strcat(str,"\n");
+                        }else if(curr_char == '"'){    
+                            strncat(str, &curr_char, 1);
+                        }else if(curr_char == 't'){
+                            strcat(str,"\t");
+                        }else if(curr_char == '\\'){
+                            strcat(str, "\\");
+                        }else if(curr_char == '$'){
+                            strncat(str, &curr_char, 1);
+                        }
+                        curr_state = STATE_STRING_START;
+                    }else if(curr_char >= '0' && curr_char <= '3'){
+                        strncat(oct, &curr_char,1);
+                        curr_state = STATE_ESC_SEQ_OCT_1;
+                    }else{
+                        strcat(str,"\\");
+                        ungetc(curr_char, file);
+                        //strncat(str, &curr_char,1);
+                        curr_state = STATE_STRING_START;
+                    }
+                    break;
+                case STATE_ESC_SEQ_OCT_1:
+                    if(curr_char >= '0' && curr_char < '8'){
+                        strncat(oct, &curr_char,1);
+                        curr_state = STATE_ESC_SEQ_OCT_2;
+                    }else{
+                        strcat(str,"\\");
+                        //strncat(oct, &curr_char,1);
+                        ungetc(curr_char,file);
+                        strcat(str, oct);
+                        strcpy(oct, "");
+                        curr_state = STATE_STRING_START;
+                    }
+                    break;
+                case STATE_ESC_SEQ_OCT_2:
+                    if(curr_char >= '0' && curr_char < '8'){
+                        strncat(oct, &curr_char,1);
+
+                        char c = (char)octalToDecimal(atoi(oct));
+                        strncat(str, &c, 1);
+
+                        strcpy(oct, "");
+                        curr_state = STATE_STRING_START;
+                    }else{
+                        strcat(str,"\\");
+                        strcat(str, oct);
+                        strcpy(oct, "");
+                        ungetc(curr_char,file);
+                        curr_state = STATE_STRING_START;
+                    }
+                    break;
+                case STATE_ESC_SEQ_HEX_1:
+                    if(isdigit(curr_char) || (curr_char >= 'a' && curr_char <= 'f') || (curr_char >= 'A' && curr_char <= 'F')){
+                        strncat(hex, &curr_char,1);
+                        curr_state = STATE_ESC_SEQ_HEX_2;
+                    }else{
+                        strcat(str,"\\x");
+                        ungetc(curr_char,file);
+                        strcpy(hex,"");
+                        curr_state = STATE_STRING_START;
+                    }
+                    break;
+                case STATE_ESC_SEQ_HEX_2:
+                    if (isdigit(curr_char) || (curr_char >= 'a' && curr_char <= 'f') || (curr_char >= 'A' && curr_char <= 'F')){
+                        strncat(hex, &curr_char,1);
+
+                        char c = (char)hexaToDecimal(hex);
+                        strncat(str, &c,1);
+
+                        strcpy(hex,"");
+                        curr_state = STATE_STRING_START;
+                    }else{
+                        strcat(str, "\\x");
+                        strcat(str, hex);
+                        ungetc(curr_char,file);
+                        strcpy(hex, "");
+                        curr_state = STATE_STRING_START;
+                    }
+                    break;
+                default:
+                    //Chyba
+                    return 1;
+                    break;
+            }
+            
+            if(curr_state == STATE_FINAL){
+                strcpy(token->attribute,str);
+                break;
+            }
         }
     }
+
     return 0;
 }
 
@@ -557,8 +720,8 @@ const char* getTokenSymbol(Type_token type){
         case T_LESS_EQUAL: return "<=";
         case T_EOF: return "End of file";
         case T_ID: return "identificator";
-        case T_HEAD: return "head (<?php)";
-        case T_PROLOG: return "prolog";
+        case T_HEAD: return "HEAD";
+        case T_EPILOGUE: return "epilogue";
         default: return "";
     }
 
