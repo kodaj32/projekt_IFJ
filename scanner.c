@@ -131,6 +131,8 @@ int detectHead(FILE *file){
                 }else if(curr_char == ';'){
                     strncat(str, &curr_char,1);
                     state = STATE_FINAL;
+                }else{
+                    return 1;
                 }
                 break;
             
