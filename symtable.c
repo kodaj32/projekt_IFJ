@@ -2,13 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void bst_local_init(bst_node_t **tree) {
-  if(tree != NULL){
-    *tree = NULL;
-  }
-}
-
-void bst_global_init(bst_node_t **tree) {
+void bst_init(bst_node_t **tree) {
   if(tree != NULL){
     *tree = NULL;
   }
@@ -66,6 +60,24 @@ int bst_insert(bst_node_t **tree, char key, int value) {
     }
   }
 }
+
+void bst_replace_by_rightmost(bst_node_t *target, bst_node_t **tree) {
+  if(tree == NULL){
+    return;
+  }
+  bst_node_t *rootPtr = *tree;
+  if (rootPtr->right != NULL){
+    bst_replace_by_rightmost(target, &rootPtr->right);
+  }
+  else{
+    target->key = rootPtr->key;
+    target->value = rootPtr->value;
+    *tree = rootPtr->left;
+    free(rootPtr);
+  }
+
+}
+
 
 void bst_delete(bst_node_t **tree, char key) {
   if(tree == NULL){

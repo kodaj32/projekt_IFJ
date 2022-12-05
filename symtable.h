@@ -26,9 +26,9 @@ typedef struct bst_node {
   struct bst_node *right; // pravý potomok
 } bst_node_t;
 
-void bst_local_init(bst_node_t **tree);
-void bst_global_init(bst_node_t **tree);
+void bst_init(bst_node_t **tree);
 int bst_insert(bst_node_t **tree, char key, int value);
 tData_t bst_search(bst_node_t *tree, char key, int *value);
 void bst_delete(bst_node_t **tree, char key);
 void bst_dispose(bst_node_t **tree);
+void bst_replace_by_rightmost(bst_node_t *target, bst_node_t **tree);
