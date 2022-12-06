@@ -21,7 +21,7 @@ bool prog(FILE *file, Token *token) {
 
 bool stat_seq(FILE *file, Token *token) {
 
-    if ((token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+    if ((token->type == T_ID) || (token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
         return (stat(file, token) && next_stat(file, token));
     }
     else {
@@ -68,6 +68,9 @@ bool stat(FILE *file, Token *token) {
     else if (token->type == T_VAR_ID) {
         return (var(file, token) && assign(file,token));
     }
+    else if ((token->type == T_EPILOGUE) || (token->type == EOF) || (token->type == T_R_CUR_BRACKET)) {
+        return true;
+    }
     else {
         return false;
     }
@@ -96,7 +99,7 @@ bool terminator(FILE *file, Token *token) {
         getToken(file, token);
         return true;
     }
-    else if ((token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+    else if ((token->type == T_ID) || (token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
         return true;
     }
     else {
@@ -260,7 +263,6 @@ bool fun_def(FILE *file, Token *token) {
         if (token->type == T_L_BRACKET) {
             getToken(file, token);
             if (params(file, token)) {
-                getToken(file, token);
                 if (token->type == T_DOUBLE_DOT) {
                     getToken(file, token);
                     if (type(file, token)) {
@@ -363,7 +365,7 @@ int operatorPrecedence() {
     return 0;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 
     // open file
     FILE * fp = fopen("file.txt", "r");
