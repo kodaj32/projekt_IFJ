@@ -30,10 +30,10 @@ typedef struct tData{
 
 // Uzol stromu
 typedef struct bst_node {
-  char *key;               // kľúč
-  int value;              // hodnota
-  struct bst_node *left;  // ľavý potomok
-  struct bst_node *right; // pravý potomok
+  char *key;                // kľúč
+  tData_t value;            // hodnota
+  struct bst_node *left;    // ľavý potomok
+  struct bst_node *right;   // pravý potomok
 } bst_node_t;
 
 void bst_init(bst_node_t **tree);

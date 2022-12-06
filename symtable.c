@@ -11,12 +11,12 @@ void bst_init(bst_node_t **tree) {
 tData_t bst_search(bst_node_t *tree, char *key, tData_t *value) {
   
   if (tree == NULL){
-    return false;
+    return NULL;
   }
 
   else if (tree->key == *key){
     *value = tree->value;
-    return value;
+    return *value;
   }
   else{
     if(*key > tree->key){
