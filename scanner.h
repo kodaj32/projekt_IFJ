@@ -136,6 +136,27 @@ typedef struct token{
 int openFile(char *filename, FILE **file);
 
 /**
+ * @param octal Number in octal form 
+ * @return int Decimal form of octal number
+ */
+int octalToDecimal(int octal);
+
+/**
+ * @param hexa Number in hexadecimal form
+ * @return int Decimal form of hexadecimal
+ */
+int hexaToDecimal(char *hexa);
+
+/**
+ * @brief Detect head <?php
+ *                    declare(strict_types=1);
+ * 
+ * @param file Pointer to file 
+ * @return int 1 if an error occur else 0
+ */
+int detectHead(FILE *file);
+
+/**
  * 
  * @param file File where scanner reads characters 
  * @param token Token structure where are stored information
