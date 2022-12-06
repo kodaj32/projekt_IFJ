@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "scanner.h"
+
 /**
  * Following functions each represent LL-grammar rule
 */
