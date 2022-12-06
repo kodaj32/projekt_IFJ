@@ -10,13 +10,13 @@
 #include "scanner.h"
 #include "linked_list.h"
 
-/* Outputting macros for code generation */
+/** Outputting macros for code generation */
 #define print(str)              printf("%s", str)                 // prints string
 #define println(str)            printf("%s\n", str)               // prints string & EOL
 #define printeol()              printf("\n")                      // prints EOL
 #define printcnt(str, cnt)      printf("%s%d\n", str, cnt)        // prints string & counter
 #define printch(ch)             printf("%c", ch)                  // prints character
-#define printd(dec)             printf("%02d", dec)               // prints decimal (integer)
+#define printd(dec)             printf("%03d", dec)               // prints decimal (integer)
 #define printflt(flt)           printf("%a", strtod(flt, NULL))   // prints float
 #define printfrmt(tok, flgs)    print_formatted_token(tok, flgs)  // prints formatted token
 
@@ -34,7 +34,7 @@
 static void gen_built_in();
 
 /**
- * Prints correctly formatted symbol token.
+ * Prints correctly formatted symbol token. todo nie iba symbol alebo to skor presunut
  *
  * @param token Symbol token.
  * @param flags Flags adjusting print format.

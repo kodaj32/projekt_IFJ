@@ -5,9 +5,8 @@
  * Functions are in large using Token structure defined in scanner. Notation in these functions in general is following:
  *   Variable token is one with type   T_ID
  *   Function token is one with type   T_ID
- *   Symbol token is one with type     T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL |
- *                                     (Function token)
  *   Data type token is one with type  T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL
+ *   Symbol token is one with type     T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL | T_ID
  *   Operation token is one with type  T_PLUS | T_MINUS | T_DIV | T_MUL | T_CONCAT | T_EQUAL | T_NOT_EQUAL | T_GREATER |
  *                                     T_LESS | T_GREATER_EQUAL | T_LESS_EQUAL
  * It is callee responsibility to only pass tokens with correct types of what individual functions are expecting. What
@@ -49,7 +48,7 @@ void gen_variable_definition(Token *const variable_token);
  *
  * Is intended for expressions generation.
  *
- * @param symbol_token expression operand.
+ * @param symbol_token Expression operand.
  */
 void gen_expression_operand(Token *const symbol_token);
 
@@ -58,7 +57,7 @@ void gen_expression_operand(Token *const symbol_token);
  *
  * Is intended for expressions generation.
  *
- * @param operation_token expression operator.
+ * @param operation_token Expression operator.
  */
 void gen_expression_operator(Token *const operation_token);
 
@@ -126,7 +125,7 @@ void gen_else_tail();
  *
  * @param function_token Function token containing it's name as attribute.
  * @param variable_token_list List of arguments of called function.
- * @param symbol_token_list List of symbols to passed as arguments by callee.
+ * @param symbol_token_list List of symbols passed as arguments by callee.
  */
 void gen_function_call(Token *const function_token, LList *variable_token_list, LList *symbol_token_list);
 
