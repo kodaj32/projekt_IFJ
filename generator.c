@@ -290,7 +290,7 @@ static void print_formatted_token(Token *const token, char const flags) {
             } else { // Format string with escape sequences
                 print("string@");
                 char ch;
-                for (int i = 0; i < strlen(token->attribute); ++i) {
+                for (int i = 0; i < (int) strlen(token->attribute); ++i) {
                     if ((ch = token->attribute[i]) == '\\' || ch == '#' || (ch <= 32 && ch >= 0)) {
                         printch('\\');
                         printd(ch);
