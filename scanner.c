@@ -310,8 +310,17 @@ int getToken(FILE *file, Token *token){
                         curr_state = STATE_FINAL;
 
                     }else if(curr_char == '$'){
-                        token->type = T_VAR_ID;
-                        curr_state = STATE_FINAL;
+                        //token->type = T_VAR_ID;
+
+                        curr_char = fgetc(file);
+
+                        if(isalpha(curr_char) || curr_char == '_'){
+                            strncat(str, &curr_char, 1);
+                        }else{
+                            exit(1);
+                        }
+
+                        curr_state = STATE_VAR;
 
                     }else if(curr_char == '>'){
                         curr_state = STATE_GREATER;
@@ -443,6 +452,19 @@ int getToken(FILE *file, Token *token){
                         return 1;
                     }
                     break;
+
+                case STATE_VAR:
+                    if(curr_char == '_' || isalpha(curr_char) || isdigit(curr_char)){
+                        strncat(str, &curr_char, 1);
+                    }else{
+                        ungetc(curr_char, file);
+
+                        token->type = T_VAR_ID;
+                        curr_state = STATE_FINAL;
+                    }
+
+                    break;
+
                 case STATE_ID:
                     if(curr_char == '_' || isalpha(curr_char) || isdigit(curr_char)){
                         strncat(str, &curr_char, 1);
@@ -673,7 +695,7 @@ const char* getTokenSymbol(Type_token type){
         case T_R_BRACKET: return ")";
         case T_L_CUR_BRACKET: return "{";
         case T_R_CUR_BRACKET: return "}";
-        case T_VAR_ID: return "$";
+        case T_VAR_ID: return "Variable";
         case T_TYPE_ID: return "?";
         case T_MINUS: return "-";
         case T_PLUS: return "+";
