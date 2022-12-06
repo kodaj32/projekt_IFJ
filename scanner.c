@@ -68,7 +68,6 @@ int hexaToDecimal(char *hexa){
     return decimal;
 }
 
-//TODO
 int detectHead(FILE *file){
 
     char curr_char;
@@ -235,7 +234,7 @@ int getToken(FILE *file, Token *token){
             head_detected = true;
             token->type = T_HEAD;
         }else{
-           return 1; 
+           exit(1); 
         }
 
     }else{
@@ -348,7 +347,7 @@ int getToken(FILE *file, Token *token){
                         }
                     }else{
                         //Chyba
-                        return 1;
+                        exit(1);
                     }
                     break;
 
@@ -372,7 +371,7 @@ int getToken(FILE *file, Token *token){
                     }else if(curr_char == EOF){
 
                         //Chyba
-                        return 1;
+                        exit(1);
                     }
                     break;
 
@@ -381,9 +380,6 @@ int getToken(FILE *file, Token *token){
                         token->type = T_LESS_EQUAL;
                         curr_state = STATE_FINAL;
                         
-                    }else if(curr_char == '?'){  
-                        curr_state = STATE_HEAD_1;
-
                     }else{
                         ungetc(curr_char, file);
                         token->type = T_LESS;
@@ -399,36 +395,6 @@ int getToken(FILE *file, Token *token){
                         token->type = T_TYPE_ID;
                     }
                     curr_state = STATE_FINAL;
-                    break;
-
-                case STATE_HEAD_1:
-                    if(curr_char == 'p'){
-                        curr_state = STATE_HEAD_2;
-                    }else{
-                        //Chyba
-                        return 1;
-                    }
-                    break;
-
-                case STATE_HEAD_2:
-                    if(curr_char == 'h'){
-                        curr_state = STATE_HEAD_3;
-                    }else{
-                        //Chyba
-                        return 1;
-                    }
-                    break;
-
-                case STATE_HEAD_3:
-                    if(curr_char == 'p'){
-                        curr_state = STATE_FINAL;
-                        token->type = T_HEAD;
-                        strcpy(str, "<?php");
-                        head_detected = true;
-                    }else{
-                        //Chyba
-                        return 1;
-                    }
                     break;
 
                 case STATE_GREATER:
@@ -459,7 +425,7 @@ int getToken(FILE *file, Token *token){
                     }else{
 
                         //Chyba
-                        return 1;
+                        exit(1);
                     }
                     break;
                 case STATE_NOT:
@@ -535,7 +501,7 @@ int getToken(FILE *file, Token *token){
                         curr_state = STATE_FLOAT_VAL;
                     }else{
                         //Chyba
-                        return 1;
+                        exit(1);
                     }
                     break;
 
@@ -558,7 +524,7 @@ int getToken(FILE *file, Token *token){
                         curr_state = STATE_FLOAT_EXP_VAL;
                     }else{
                         //Chyba
-                        return 1;
+                        exit(1);
                     }
                     break;
 
@@ -584,7 +550,7 @@ int getToken(FILE *file, Token *token){
 
                     }else if(curr_char == EOF){
                         //Chyba
-                        return 1;
+                        exit(1);
                     }else{
                         strncat(str, &curr_char, 1);
                     }
@@ -678,7 +644,7 @@ int getToken(FILE *file, Token *token){
                     break;
                 default:
                     //Chyba
-                    return 1;
+                    exit(1);
                     break;
             }
             
