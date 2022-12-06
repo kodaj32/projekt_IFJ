@@ -63,6 +63,7 @@ typedef enum state{
     STATE_GREATER,
 
     STATE_ID,
+    STATE_VAR,
     STATE_Q_MARK,
 
     STATE_FINAL
