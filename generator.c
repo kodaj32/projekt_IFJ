@@ -157,7 +157,8 @@ void gen_else_tail() {
 }
 
 void gen_function_call(Token *const function_token, LList *variable_token_list, LList *symbol_token_list) {
-    Token *variable_token, *symbol_token;
+    Token *variable_token = NULL;
+    Token *symbol_token = NULL;
 
     println("CREATEFRAME");
 
