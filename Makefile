@@ -26,5 +26,8 @@ generator.o: generator.c
 linked_list.o: linked_list.c
 	$(CC) $(CFLAGS) -c linked_list.c -o linked_list.o
 
+.PHONY: clean all
+.SILENT: clean
+
 clean:
-	rm *.o
+	rm -f *.o $(EXECUTABLE)
