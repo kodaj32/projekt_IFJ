@@ -2,7 +2,7 @@ CC = gcc
 LD = gcc
 
 CFLAGS=-std=c99 -Wall -Wextra -Werror
-OBJECTS =  scanner.o parser.o symtable.o generator.o
+OBJECTS =  scanner.o parser.o symtable.o linked_list.o generator.o
 EXECUTABLE = main
 
 
@@ -22,6 +22,9 @@ symtable.o: symtable.c
 
 generator.o: generator.c 
 	$(CC) $(CFLAGS) -c generator.c -o generator.o
+
+linked_list.o: linked_list.c
+	$(CC) $(CFLAGS) -c linked_list.c -o linked_list.o
 
 clean:
 	rm *.o
