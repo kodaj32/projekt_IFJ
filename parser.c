@@ -2,6 +2,7 @@
 #include "scanner.c"
 #include "scanner.h"
 #include "generator.c"
+#include "symtable.h"
 
 #include <stdio.h>
 #include <stdbool.h>
