@@ -30,6 +30,11 @@ bool stat_seq(FILE *file, Token *token) {
 }
 
 bool epilogue(FILE *file, Token *token) {
+
+    if (token->type == T_R_CUR_BRACKET) {
+        getToken(file, token);
+    }
+    
     if (token->type == T_EPILOGUE) {
         getToken(file, token);
         if (token->type == T_EOF){
@@ -79,7 +84,6 @@ bool stat(FILE *file, Token *token) {
 bool next_stat(FILE *file, Token *token) {
 
     if ((token->type == T_EPILOGUE) || (token->type == T_R_CUR_BRACKET)) {
-        getToken(file, token);
         return true;
     }
     else if (token->type == T_EOF) {
@@ -244,6 +248,7 @@ bool while_cycle(FILE *file, Token *token) {
                     getToken(file, token);
                     if (stat_seq(file, token)) {
                         if (token->type == T_R_CUR_BRACKET) {
+                            getToken(file, token);
                             return true;
                         }
                     }
@@ -270,6 +275,7 @@ bool fun_def(FILE *file, Token *token) {
                             getToken(file, token);
                             if (stat_seq(file, token)) {
                                 if (token->type == T_R_CUR_BRACKET) {
+                                    getToken(file, token);
                                     return true;
                                 }
                             }
@@ -358,11 +364,9 @@ bool var(FILE *file, Token *token) {
     }    
 }
 
+bool operatorPrecedence(FILE *file, Token *token) {
 
-// TODO precedencna analyza
-int operatorPrecedence() {
-
-    return 0;
+    return false;
 }
 
 int main(int argc, char *argv[]) {

@@ -31,5 +31,6 @@ bool type_prefix(FILE *file, Token *token);
 bool params(FILE *file, Token *token);
 bool params_n(FILE *file, Token *token);
 bool var(FILE *file, Token *token);
+bool operatorPrecedence(FILE *file, Token *token);
 
 #endif
