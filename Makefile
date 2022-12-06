@@ -1,8 +1,8 @@
 CC = gcc
 LD = gcc
 
-CFLAGS=-std=c99 -Wall -Wextra -Werror
-OBJECTS =  scanner.o parser.o symtable.o linked_list.o generator.o
+CFLAGS=-std=c99 #-Wall -Wextra -Werror
+OBJECTS =  scanner.o parser.o symtable.o linked_list.o preced_list.o #generator.o
 EXECUTABLE = main
 
 
@@ -25,6 +25,9 @@ generator.o: generator.c
 
 linked_list.o: linked_list.c
 	$(CC) $(CFLAGS) -c linked_list.c -o linked_list.o
+
+preced_list.o: preced_list.c
+	$(CC) $(CFLAGS) -c preced_list.c -o preced_list.o
 
 .PHONY: clean all
 .SILENT: clean
