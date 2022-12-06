@@ -51,7 +51,7 @@ bool stat(FILE *file, Token *token) {
 
     if (token->type == T_RETURN) {
         getToken(file, token);
-        return expression(file, token);
+        return expr(file, token);
     }
     else if (token->type == T_ID) {
         return fun_call(file, token);
@@ -68,7 +68,7 @@ bool stat(FILE *file, Token *token) {
     else if (token->type == T_VAR_ID) {
         return (var(file, token) && assign(file,token));
     }
-    else if ((token->type == T_EPILOGUE) || (token->type == EOF) || (token->type == T_R_CUR_BRACKET)) {
+    else if ((token->type == T_EPILOGUE) || (token->type == T_EOF) || (token->type == T_R_CUR_BRACKET)) {
         return true;
     }
     else {
@@ -111,14 +111,14 @@ bool assign(FILE *file, Token *token){
 
     if (token->type == T_ASSIGN) {
         getToken(file, token);
-        return expression(file, token);
+        return expr(file, token);
     }
     else {
         return false;
     }    
 }
 
-bool expression(FILE *file, Token *token) {
+bool expr(FILE *file, Token *token) {
 
     // tu niekde bude prepnutie do precedencnej analyzy, zatial neviem este na zaklade coho posudit
     
@@ -202,7 +202,7 @@ bool cond_stat(FILE *file, Token *token) {
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
         getToken(file, token);
-        if (expression(file, token)) {
+        if (expr(file, token)) {
             if (token->type == T_R_BRACKET) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
@@ -237,7 +237,7 @@ bool while_cycle(FILE *file, Token *token) {
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
         getToken(file, token);
-        if (expression(file, token)) {
+        if (expr(file, token)) {
             if (token->type == T_R_BRACKET) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
