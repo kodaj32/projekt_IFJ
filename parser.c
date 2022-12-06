@@ -10,7 +10,7 @@
 bool prog(FILE *file, Token *token) {
     
     if (token->type == T_HEAD) {
-        getToken(file, &token);
+        getToken(file, token);
         return (stat_seq(file, token) && epilogue(file, token));
     }
     else {
@@ -30,7 +30,7 @@ bool stat_seq(FILE *file, Token *token) {
 
 bool epilogue(FILE *file, Token *token) {
     if (token->type == T_EPILOGUE) {
-        getToken(file, &token);
+        getToken(file, token);
         if (token->type == T_EOF){
             return true;
         }
@@ -49,7 +49,7 @@ bool epilogue(FILE *file, Token *token) {
 bool stat(FILE *file, Token *token) {
 
     if (token->type == T_RETURN) {
-        getToken(file, &token);
+        getToken(file, token);
         return expression(file, token);
     }
     else if (token->type == T_ID) {
@@ -75,7 +75,7 @@ bool stat(FILE *file, Token *token) {
 bool next_stat(FILE *file, Token *token) {
 
     if ((token->type == T_EPILOGUE) || (token->type == T_R_CUR_BRACKET)) {
-        getToken(file, &token);
+        getToken(file, token);
         return true;
     }
     else if (token->type == T_EOF) {
@@ -92,7 +92,7 @@ bool next_stat(FILE *file, Token *token) {
 bool terminator(FILE *file, Token *token) {
 
     if (token->type == T_SEMICOLON) {
-        getToken(file, &token);
+        getToken(file, token);
         return true;
     }
     else if ((token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
@@ -106,7 +106,7 @@ bool terminator(FILE *file, Token *token) {
 bool assign(FILE *file, Token *token){
 
     if (token->type == T_ASSIGN) {
-        getToken(file, &token);
+        getToken(file, token);
         return expression(file, token);
     }
     else {
@@ -134,15 +134,15 @@ bool expression(FILE *file, Token *token) {
 
 bool val(FILE *file, Token *token) {
 
-    getToken(file, &token);
+    getToken(file, token);
     return true;
 }
 
 bool fun_call(FILE *file, Token *token) {
 
-    getToken(file, &token);
+    getToken(file, token);
     if (token->type == T_L_BRACKET) {
-        getToken(file, &token);
+        getToken(file, token);
         if (args(file, token)) {
             if(token->type == T_R_BRACKET) {
                 getToken(file, token);
@@ -195,24 +195,24 @@ bool args_n(FILE *file, Token *token) {
 
 bool cond_stat(FILE *file, Token *token) {
 
-    getToken(file, &token);
+    getToken(file, token);
     if (token->type == T_L_BRACKET) {
-        getToken(file, &token);
+        getToken(file, token);
         if (expression(file, token)) {
             if (token->type == T_R_BRACKET) {
-                getToken(file, &token);
+                getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
-                    getToken(file, &token);
+                    getToken(file, token);
                     if (stat_seq(file, token)) {
                         if (token->type == T_R_CUR_BRACKET) {
-                            getToken(file, &token);
+                            getToken(file, token);
                             if (token->type == T_ELSE) {
-                                getToken(file, &token);
+                                getToken(file, token);
                                 if (token->type == T_L_CUR_BRACKET) {
-                                    getToken(file, &token);
+                                    getToken(file, token);
                                     if (stat_seq(file, token)) {
                                         if (token->type == T_R_CUR_BRACKET) {
-                                            getToken(file, &token);
+                                            getToken(file, token);
                                             return true;
                                         }
                                     }
@@ -230,14 +230,14 @@ bool cond_stat(FILE *file, Token *token) {
 
 bool while_cycle(FILE *file, Token *token) {
 
-    getToken(file, &token);
+    getToken(file, token);
     if (token->type == T_L_BRACKET) {
-        getToken(file, &token);
+        getToken(file, token);
         if (expression(file, token)) {
             if (token->type == T_R_BRACKET) {
-                getToken(file, &token);
+                getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
-                    getToken(file, &token);
+                    getToken(file, token);
                     if (stat_seq(file, token)) {
                         if (token->type == T_R_CUR_BRACKET) {
                             return true;
@@ -253,18 +253,18 @@ bool while_cycle(FILE *file, Token *token) {
 
 bool fun_def(FILE *file, Token *token) {
 
-    getToken(file, &token);
+    getToken(file, token);
     if (token->type == T_ID) {
-        getToken(file, &token);
+        getToken(file, token);
         if (token->type == T_L_BRACKET) {
-            getToken(file, &token);
+            getToken(file, token);
             if (params(file, token)) {
-                getToken(file, &token);
+                getToken(file, token);
                 if (token->type == T_DOUBLE_DOT) {
-                    getToken(file, &token);
+                    getToken(file, token);
                     if (type(file, token)) {
                         if (token->type == T_L_CUR_BRACKET) {
-                            getToken(file, &token);
+                            getToken(file, token);
                             if (stat_seq(file, token)) {
                                 if (token->type == T_R_CUR_BRACKET) {
                                     return true;
@@ -293,7 +293,7 @@ bool type(FILE *file, Token *token) {
 bool type2(FILE *file, Token *token) {
 
     if ((token->type == T_INT) || (token->type == T_FLOAT) || (token->type == T_VOID)) {
-        getToken(file, &token);
+        getToken(file, token);
         return true;
     }
     else {
@@ -304,7 +304,7 @@ bool type2(FILE *file, Token *token) {
 bool type_prefix(FILE *file, Token *token) {
 
     if (token->type == T_TYPE_ID) {
-        getToken(file, &token);
+        getToken(file, token);
         return true;
     }
     else if ((token->type == T_INT) || (token->type == T_FLOAT) || (token->type == T_VOID)) {
@@ -318,7 +318,7 @@ bool type_prefix(FILE *file, Token *token) {
 bool params(FILE *file, Token *token) {
     
     if (token->type == T_R_BRACKET) {
-        getToken(file, &token);
+        getToken(file, token);
         return true;
     }
     else if ((token->type == T_TYPE_ID) || (token->type == T_INT) || (token->type == T_FLOAT) || (token->type == T_VOID)) {
@@ -332,11 +332,11 @@ bool params(FILE *file, Token *token) {
 bool params_n(FILE *file, Token *token) {
 
     if (token->type == T_R_BRACKET) {
-        getToken(file, &token);
+        getToken(file, token);
         return true;
     }
     else if (token->type == T_COMMA) {
-        getToken(file, &token);
+        getToken(file, token);
         return (type(file, token) && var(file, token) && params_n(file, token));
     }
     else {
@@ -346,9 +346,8 @@ bool params_n(FILE *file, Token *token) {
 
 bool var(FILE *file, Token *token) {
 
-    getToken(file, &token);
-    if (token->type == T_ID) {
-        getToken(file, &token);
+    if (token->type == T_VAR_ID) {
+        getToken(file, token);
         return true;
     }
     else {
