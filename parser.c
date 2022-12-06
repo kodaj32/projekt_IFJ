@@ -21,7 +21,7 @@ bool prog(FILE *file, Token *token) {
 
 bool stat_seq(FILE *file, Token *token) {
 
-    if ((token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+    if ((token->type == T_ID) || (token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
         return (stat(file, token) && next_stat(file, token));
     }
     else {
@@ -30,6 +30,11 @@ bool stat_seq(FILE *file, Token *token) {
 }
 
 bool epilogue(FILE *file, Token *token) {
+
+    if (token->type == T_R_CUR_BRACKET) {
+        getToken(file, token);
+    }
+    
     if (token->type == T_EPILOGUE) {
         getToken(file, token);
         if (token->type == T_EOF){
@@ -51,7 +56,7 @@ bool stat(FILE *file, Token *token) {
 
     if (token->type == T_RETURN) {
         getToken(file, token);
-        return expression(file, token);
+        return expr(file, token);
     }
     else if (token->type == T_ID) {
         return fun_call(file, token);
@@ -68,6 +73,9 @@ bool stat(FILE *file, Token *token) {
     else if (token->type == T_VAR_ID) {
         return (var(file, token) && assign(file,token));
     }
+    else if ((token->type == T_EPILOGUE) || (token->type == T_EOF) || (token->type == T_R_CUR_BRACKET)) {
+        return true;
+    }
     else {
         return false;
     }
@@ -76,7 +84,6 @@ bool stat(FILE *file, Token *token) {
 bool next_stat(FILE *file, Token *token) {
 
     if ((token->type == T_EPILOGUE) || (token->type == T_R_CUR_BRACKET)) {
-        getToken(file, token);
         return true;
     }
     else if (token->type == T_EOF) {
@@ -96,7 +103,7 @@ bool terminator(FILE *file, Token *token) {
         getToken(file, token);
         return true;
     }
-    else if ((token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+    else if ((token->type == T_ID) || (token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
         return true;
     }
     else {
@@ -108,14 +115,14 @@ bool assign(FILE *file, Token *token){
 
     if (token->type == T_ASSIGN) {
         getToken(file, token);
-        return expression(file, token);
+        return expr(file, token);
     }
     else {
         return false;
     }    
 }
 
-bool expression(FILE *file, Token *token) {
+bool expr(FILE *file, Token *token) {
 
     // tu niekde bude prepnutie do precedencnej analyzy, zatial neviem este na zaklade coho posudit
     
@@ -199,7 +206,7 @@ bool cond_stat(FILE *file, Token *token) {
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
         getToken(file, token);
-        if (expression(file, token)) {
+        if (expr(file, token)) {
             if (token->type == T_R_BRACKET) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
@@ -234,13 +241,14 @@ bool while_cycle(FILE *file, Token *token) {
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
         getToken(file, token);
-        if (expression(file, token)) {
+        if (expr(file, token)) {
             if (token->type == T_R_BRACKET) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
                     getToken(file, token);
                     if (stat_seq(file, token)) {
                         if (token->type == T_R_CUR_BRACKET) {
+                            getToken(file, token);
                             return true;
                         }
                     }
@@ -260,7 +268,6 @@ bool fun_def(FILE *file, Token *token) {
         if (token->type == T_L_BRACKET) {
             getToken(file, token);
             if (params(file, token)) {
-                getToken(file, token);
                 if (token->type == T_DOUBLE_DOT) {
                     getToken(file, token);
                     if (type(file, token)) {
@@ -268,6 +275,7 @@ bool fun_def(FILE *file, Token *token) {
                             getToken(file, token);
                             if (stat_seq(file, token)) {
                                 if (token->type == T_R_CUR_BRACKET) {
+                                    getToken(file, token);
                                     return true;
                                 }
                             }
@@ -356,14 +364,12 @@ bool var(FILE *file, Token *token) {
     }    
 }
 
+bool operatorPrecedence(FILE *file, Token *token) {
 
-// TODO precedencna analyza
-int operatorPrecedence() {
-
-    return 0;
+    return false;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 
     // open file
     FILE * fp = fopen("file.txt", "r");
