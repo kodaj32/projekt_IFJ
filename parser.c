@@ -124,16 +124,13 @@ bool assign(FILE *file, Token *token){
 
 bool expr(FILE *file, Token *token) {
 
-    // tu niekde bude prepnutie do precedencnej analyzy, zatial neviem este na zaklade coho posudit
+    // switch to operator precedence
     
-    if ((token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
-        return val(file, token);
+    if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
+        return operatorPrecedence(file, token);
     }
     else if(token->type == T_ID) {
         return fun_call(file, token);
-    }
-    else if (token->type == T_VAR_ID) {
-        return var(file, token);
     }
     else {
         return false;
@@ -366,7 +363,28 @@ bool var(FILE *file, Token *token) {
 
 bool operatorPrecedence(FILE *file, Token *token) {
 
-    return false;
+    bool repeat = true;
+
+    // inicializuje sa zoznam/stack
+
+    while (repeat) {
+
+        
+        // vytvori sa vstupna premenna
+        // setInput
+        // top = getFirst
+        // op = table[a][b];
+        // if op == '=' then InsertFirst
+        // else if op == '<' then InsertBeforeFirstTerminal
+        // else if op == '>' ruleReduction
+
+
+        // if (/* koniec vstupu */) {
+        //     repeat = false;
+        // }
+    }
+
+    return true;
 }
 
 int main(int argc, char *argv[]) {
