@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "scanner.h"
+#include "preced_list.h"
 
 /**
  * Following functions each represent LL-grammar rule
@@ -32,6 +33,7 @@ bool params(FILE *file, Token *token);
 bool params_n(FILE *file, Token *token);
 bool var(FILE *file, Token *token);
 bool operatorPrecedence(FILE *file, Token *token);
+void setInput(Prec_type *dataPtr, Token *token);
 
 char precedenceTable[15][15] = {
     {'>','>','>','<','<','>','>','>','>','>','>','<','>','<','>'},
