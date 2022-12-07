@@ -42,6 +42,21 @@ void Prec_LL_InsertFirst( PrecLList *list, Prec_type data ) {
 	list->firstElement = newElemPtr;
 }
 
+void Prec_LL_InsertFirst_Elem(PrecLList *list, PrecElementPtr elem){
+
+    if(list == NULL){
+        Prec_LL_Error();
+    }else{
+        if(list->firstElement == NULL){
+            list->firstElement = elem;
+            elem->nextElement = NULL;
+        }else{
+            elem->nextElement = list->firstElement;
+            list->firstElement = elem;
+        }
+    }    
+}
+
 void Prec_LL_First( PrecLList *list ) {
 
 	list->activeElement = list->firstElement;
@@ -101,8 +116,21 @@ void Prec_LL_InsertAfter( PrecLList *list, Prec_type data ) {
 		newElementPtr->data = data;
 		newElementPtr->nextElement = list->activeElement->nextElement;
 		list->activeElement->nextElement = newElementPtr;
-
 	}
+}
+
+void Prec_LL_InsertAfter_Elem(PrecLList *list, PrecElementPtr elem){
+
+    if(list == NULL){
+        Prec_LL_Error();
+    }else{
+        if(list->activeElement == NULL){
+            Prec_LL_Error();
+        }else{
+            elem->nextElement = list->activeElement->nextElement;
+            list->activeElement->nextElement = elem;
+        }
+    }
 }
 
 void Prec_LL_Next( PrecLList *list ) {

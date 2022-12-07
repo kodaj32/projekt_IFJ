@@ -40,10 +40,12 @@ typedef struct{
 void Prec_LL_Init( PrecLList *list );
 void Prec_LL_Dispose( PrecLList *list );
 void Prec_LL_InsertFirst( PrecLList *list, Prec_type dataPtr );
+void Prec_LL_InsertFirst_Elem(PrecLList *list, PrecElementPtr elem);
 void Prec_LL_First( PrecLList *list );
 void Prec_LL_GetFirst( PrecLList *list, Prec_type *dataPtr );
 void Prec_LL_DeleteFirst( PrecLList *list );
 void Prec_LL_DeleteAfter( PrecLList *list );
+void Prec_LL_InsertAfter_Elem(PrecLList *list, PrecElementPtr elem);
 void Prec_LL_InsertAfter( PrecLList *list, Prec_type data );
 void Prec_LL_Next( PrecLList *list );
 void Prec_LL_GetValue(PrecLList *list, Prec_type *dataPtr);
