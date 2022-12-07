@@ -25,7 +25,8 @@ typedef enum prec_type{
     ID,           // i
     END_MARKER,   // $
     NON_TERMINAL, // E
-    HANDLE        // '<'
+    HANDLE,       // '<'
+    ERR           // wrong input
 }Prec_type;
 
 typedef struct PrecLLElement {
