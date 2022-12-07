@@ -9,21 +9,23 @@
 
 
 typedef enum prec_type{
-    PLUS,       // +
-    MIN,        // -
-    DOT,        // .
-    DIV,        // /
-    MUL,        // *
-    EQ,         // ===
-    NOT_EQ,     // !==
-    LESS,       // <
-    GREATER,    // >
-    LESS_E,     // <=
-    GREATER_E,  // >= 
-    LEFT_BR,    // (
-    RIGHT_BR,   // )
-    ID,         // i
-    END_MARKER, // $
+    PLUS,         // +
+    MIN,          // -
+    DOT,          // .
+    DIV,          // /
+    MUL,          // *
+    EQ,           // ===
+    NOT_EQ,       // !==
+    LESS,         // <
+    GREATER,      // >
+    LESS_E,       // <=
+    GREATER_E,    // >= 
+    LEFT_BR,      // (
+    RIGHT_BR,     // )
+    ID,           // i
+    END_MARKER,   // $
+    NON_TERMINAL, // E
+    HANDLE        // '<'
 }Prec_type;
 
 typedef struct PrecLLElement {
@@ -51,5 +53,8 @@ void Prec_LL_Next( PrecLList *list );
 void Prec_LL_GetValue(PrecLList *list, Prec_type *dataPtr);
 void Prec_LL_SetValue( PrecLList *list, Prec_type data);
 int Prec_LL_IsActive(PrecLList *list);
+void Prec_LL_GetFirstTerminal( PrecLList *list, Prec_type *dataPtr );
+void Prec_LL_InsertBeforeFirstTerminal( PrecLList *list, Prec_type data );
+void Prec_LL_RuleReduction( PrecLList *list );
 
 #endif
