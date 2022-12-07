@@ -1,8 +1,7 @@
 CC = gcc
-LD = gcc
 
-CFLAGS=-std=c99 #-Wall -Wextra -Werror
-OBJECTS =  scanner.o parser.o symtable.o linked_list.o preced_list.o #generator.o
+CFLAGS=-std=c99 -Wall -Wextra -Werror
+OBJECTS =  scanner.o parser.o symtable.o linked_list.o preced_list.o generator.o
 EXECUTABLE = main
 
 
