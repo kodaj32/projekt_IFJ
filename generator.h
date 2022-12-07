@@ -3,10 +3,10 @@
  * to generate smaller logical segments.
  *
  * Functions are in large using Token structure defined in scanner. Notation in these functions in general is following:
- *   Variable token is one with type   T_ID
+ *   Variable token is one with type   T_VAR_ID
  *   Function token is one with type   T_ID
  *   Data type token is one with type  T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL
- *   Symbol token is one with type     T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL | T_ID
+ *   Symbol token is one with type     T_INT_VAL | T_FLOAT_VAL | T_FLOAT_EXP_VAL | T_STRING_VAL | T_NULL | T_VAR_ID
  *   Operation token is one with type  T_PLUS | T_MINUS | T_DIV | T_MUL | T_CONCAT | T_EQUAL | T_NOT_EQUAL | T_GREATER |
  *                                     T_LESS | T_GREATER_EQUAL | T_LESS_EQUAL
  * It is callee responsibility to only pass tokens with correct types of what individual functions are expecting. What
