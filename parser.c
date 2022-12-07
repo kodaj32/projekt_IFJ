@@ -1,12 +1,17 @@
 #include "parser.h"
 #include "scanner.h"
+#include "generator.h"
 #include "symtable.h"
 #include "preced_list.h"
 
 #include <stdio.h>
 #include <stdbool.h>
 
-
+/** 
+ * The start of syntax analysis through recursive descent.
+ * Each bool function is an implemented rule from LL-grammar.
+ * We check the token type from input and based on LL-table choose the designated rule to call.
+*/
 bool prog(FILE *file, Token *token) {
     
     if (token->type == T_HEAD) {
@@ -29,6 +34,36 @@ bool stat_seq(FILE *file, Token *token) {
     else {
         return false;
     }
+}
+
+bool local_stat_seq(FILE *file, Token *token) {
+
+    if ((token->type == T_ID) || (token->type == T_RETURN) || 
+        (token->type == T_IF) || (token->type == T_WHILE) || 
+        (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+
+        return (stat(file, token) && local_next_stat(file, token));
+    }
+    else {
+        return false;
+    }
+}
+
+bool local_next_stat(FILE *file, Token *token) {
+
+    if ((token->type == T_R_CUR_BRACKET)) {
+        return true;
+    }
+    else if ((token->type == T_SEMICOLON) || (token->type == T_ID) || 
+             (token->type == T_RETURN) || (token->type == T_IF) || 
+             (token->type == T_WHILE) || (token->type == T_FUNCTION) || 
+             (token->type == T_VAR_ID)) {
+
+        return (terminator(file, token) && stat(file, token) && local_next_stat(file, token));
+    }
+    else {
+        return false;
+    }    
 }
 
 bool epilogue(FILE *file, Token *token) {
@@ -85,10 +120,7 @@ bool stat(FILE *file, Token *token) {
 
 bool next_stat(FILE *file, Token *token) {
 
-    if ((token->type == T_EPILOGUE) || (token->type == T_R_CUR_BRACKET)) {
-        return true;
-    }
-    else if (token->type == T_EOF) {
+    if ((token->type == T_EPILOGUE) || (token->type == T_EOF)) {
         return true;
     }
     else if ((token->type == T_SEMICOLON) || (token->type == T_ID) || 
@@ -133,13 +165,12 @@ bool assign(FILE *file, Token *token){
 
 bool expr(FILE *file, Token *token) {
 
-    // switch to operator precedence
-    
     if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || 
         (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || 
         (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
 
-        return operatorPrecedence(file, token);
+        /** Switch into operator precedence analysis */
+        return operatorPrecedence(file, token); 
     }
     else if(token->type == T_ID) {
         return fun_call(file, token);
@@ -208,6 +239,7 @@ bool args_n(FILE *file, Token *token) {
         return true;
     }
     else if (token->type == T_COMMA) {
+        getToken(file, token);
         return (arg(file, token) && args_n(file, token));
     }
     else {
@@ -225,14 +257,14 @@ bool cond_stat(FILE *file, Token *token) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
                     getToken(file, token);
-                    if (stat_seq(file, token)) {
+                    if (local_stat_seq(file, token)) {
                         if (token->type == T_R_CUR_BRACKET) {
                             getToken(file, token);
                             if (token->type == T_ELSE) {
                                 getToken(file, token);
                                 if (token->type == T_L_CUR_BRACKET) {
                                     getToken(file, token);
-                                    if (stat_seq(file, token)) {
+                                    if (local_stat_seq(file, token)) {
                                         if (token->type == T_R_CUR_BRACKET) {
                                             getToken(file, token);
                                             return true;
@@ -260,7 +292,7 @@ bool while_cycle(FILE *file, Token *token) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
                     getToken(file, token);
-                    if (stat_seq(file, token)) {
+                    if (local_stat_seq(file, token)) {
                         if (token->type == T_R_CUR_BRACKET) {
                             getToken(file, token);
                             return true;
@@ -287,7 +319,7 @@ bool fun_def(FILE *file, Token *token) {
                     if (type(file, token)) {
                         if (token->type == T_L_CUR_BRACKET) {
                             getToken(file, token);
-                            if (stat_seq(file, token)) {
+                            if (local_stat_seq(file, token)) {
                                 if (token->type == T_R_CUR_BRACKET) {
                                     getToken(file, token);
                                     return true;
@@ -457,6 +489,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag) {
     }
 }
 
+/** The start of operator precedence analysis */
 bool operatorPrecedence(FILE *file, Token *token) {
 
     bool repeat = true;
@@ -537,10 +570,19 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    /** Initialize token structure and get first token */
     Token token;
     getToken(fp, &token);
 
+    /** Start the syntax analysis */
     if (prog(fp, &token)) {
-        return 0;
+
+        
+        return 0; // syntax analysis finished without any error
+    }
+    else {
+
+        
+        return 2; // syntax error
     }
 }
