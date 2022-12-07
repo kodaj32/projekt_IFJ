@@ -20,7 +20,7 @@ typedef enum{
 
 //Data v uzle
 
-typedef struct tData{
+typedef struct tData_t{
     tType type;                         // typ identifikatoru
     tdata_Type data_type;               // datovy typ
     bool defined;                       // pozerame ci volana funkcia bola definovana

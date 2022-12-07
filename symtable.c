@@ -1,6 +1,7 @@
 #include "symtable.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "linked_list.h"
 
 void bst_init(bst_node_t **tree) {
   if(tree != NULL){
@@ -42,7 +43,7 @@ void bst_insert(bst_node_t **tree, char *key, tData_t value) {
     else{
       exit(99);
     }
-    
+
     rootPtr->key = key;
     rootPtr->value = value;
     rootPtr->left= NULL;
@@ -130,4 +131,30 @@ void bst_dispose(bst_node_t **tree) {
     free(*tree);
     *tree = NULL;
   }
+}
+
+void add_funcs(bst_node_t **tree){
+  tData_t new_func = (tData_t) malloc(sizeof(tData_t));
+  new_func->type = FUNC;
+  new_func->defined = true;
+  new_func->called = false;
+  new_func->local_scope = NULL;
+  new_func->data_type = UNDEFINED;
+  new_func->params = 0;
+  new_func->func_params = NULL;
+  bst_insert(tree, "reads", new_func);
+  bst_insert(tree, "readi", new_func);
+  bst_insert(tree, "readf", new_func);
+  new_func->params = 1;
+  bst_insert(tree, "floatval", new_func);
+  bst_insert(tree, "intval", new_func);
+  bst_insert(tree, "strval", new_func);
+  bst_insert(tree, "ord", new_func);
+  bst_insert(tree, "chr", new_func);
+  bst_insert(tree, "strlen", new_func);
+  new_func->params = 3;
+  bst_insert(tree, "substring", new_func);
+  new_func->params = -1;
+  bst_insert(tree, "write", new_func);
+
 }
