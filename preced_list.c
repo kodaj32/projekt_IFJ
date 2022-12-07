@@ -59,6 +59,8 @@ void Prec_LL_GetFirst( PrecLList *list, Prec_type *dataPtr ) {
 
 void Prec_LL_GetFirstTerminal( PrecLList *list, Prec_type *dataPtr ) {
 
+	Prec_LL_First(list);
+
 	if (list->firstElement == NULL) {
 		Prec_LL_Error();
 	}

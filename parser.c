@@ -554,7 +554,6 @@ bool operatorPrecedence(FILE *file, Token *token) {
         }
 
         // top = getFirst
-        Prec_LL_First(&list);
         Prec_LL_GetFirstTerminal(&list, &top->data);
 
         // op = table[a][b];
