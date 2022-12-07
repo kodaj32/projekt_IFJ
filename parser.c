@@ -387,7 +387,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
 
     if (token->type == T_PLUS) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = PLUS;
@@ -396,7 +396,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_MINUS) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = MIN;
@@ -405,7 +405,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_CONCAT) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = DOT;
@@ -414,7 +414,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_DIV) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = DIV;
@@ -423,7 +423,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_MUL) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = MUL;
@@ -432,7 +432,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_EQUAL) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = EQ;
@@ -441,7 +441,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_NOT_EQUAL) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = NOT_EQ;
@@ -450,7 +450,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_LESS) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = LESS;
@@ -459,7 +459,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_GREATER) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = GREATER;
@@ -468,7 +468,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_LESS_EQUAL) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = LESS_E;
@@ -477,7 +477,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_GREATER_EQUAL) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = GREATER_E;
@@ -486,7 +486,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_L_BRACKET) {
         if (*prevOpFlag == 0) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = LEFT_BR;
@@ -496,7 +496,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
     }
     else if (token->type == T_R_BRACKET) {
         if (*prevOpFlag == 1) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = RIGHT_BR;
@@ -508,7 +508,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
              (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
 
         if (*prevOpFlag == 0) {
-            *dataPtr = END_MARKER;
+            *dataPtr = ERR;
         }
         else {
             *dataPtr = ID;
@@ -533,7 +533,7 @@ bool operatorPrecedence(FILE *file, Token *token) {
      * 0 --> operand
      * 1 --> operator
     */
-    int *prevOpFlag = 0;
+    int prevOpFlag = 1;
 
     // vytvori sa vstupna premenna
     PrecElementPtr input = malloc(sizeof(struct PrecLLElement));
@@ -548,8 +548,8 @@ bool operatorPrecedence(FILE *file, Token *token) {
     while (repeat) {
 
         // setInput
-        setInput(&input->data, token, prevOpFlag);
-        if (input->data == END_MARKER) {
+        setInput(&input->data, token, &prevOpFlag);
+        if (input->data == ERR) {
             return false;
         }
 
@@ -564,29 +564,24 @@ bool operatorPrecedence(FILE *file, Token *token) {
         // else if op == '>' ruleReduction
         if (op == '=') {
             Prec_LL_InsertFirst(&list, input->data);
+
+            getToken(file, token);
         }
         else if (op == '<') {
             Prec_LL_InsertBeforeFirstTerminal(&list, HANDLE);
             Prec_LL_InsertFirst(&list, input->data);
+
+            getToken(file, token);
         }
         else if (op == '>') {
-            
             Prec_LL_RuleReduction(&list);
+        }
+        else if (op == 'w') {
+            repeat = false;
         }
         else {
             return false;
-        }
-
-        getToken(file, token);
-
-        Prec_LL_GetFirstTerminal(&list, &top->data);
-
-        // end of expression
-        if (((top->data == END_MARKER) && (token->type == T_SEMICOLON)) ||
-            ((top->data == END_MARKER) && (token->type == T_R_BRACKET))) {
-
-            repeat = false;
-        }        
+        }          
     }
 
     Prec_LL_Dispose(&list);
