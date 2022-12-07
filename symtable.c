@@ -8,17 +8,18 @@ void bst_init(bst_node_t **tree) {
   }
 }
 
-tData_t bst_search(bst_node_t *tree, char key, int *value) {
+tData_t bst_search(bst_node_t *tree, char *key, tData_t *value) {
+  
   if (tree == NULL){
-    return false;
+    return NULL;
   }
 
-  else if (tree->key == key){
+  else if (strcmp(tree->key, key) == 0){
     *value = tree->value;
-    return true;
+    return *value;
   }
   else{
-    if(key > tree->key){
+    if(strcmp(key, tree->key) > 0){
       return (bst_search(tree->right, key, value));
     }
     else{
@@ -27,7 +28,7 @@ tData_t bst_search(bst_node_t *tree, char key, int *value) {
   }
 }
 
-int bst_insert(bst_node_t **tree, char key, int value) {
+void bst_insert(bst_node_t **tree, char *key, tData_t value) {
   if(tree == NULL){
     return;
   }
@@ -49,10 +50,10 @@ int bst_insert(bst_node_t **tree, char key, int value) {
     }
   }
   else{
-    if(key < rootPtr->key){
+    if(strcmp(key, rootPtr->key) < 0){
       bst_insert(&rootPtr->left, key, value);
     }
-    else if(rootPtr->key < key){
+    else if(strcmp(rootPtr->key, key) > 0){
       bst_insert(&rootPtr->right, key, value);
     }
     else{
@@ -79,7 +80,7 @@ void bst_replace_by_rightmost(bst_node_t *target, bst_node_t **tree) {
 }
 
 
-void bst_delete(bst_node_t **tree, char key) {
+void bst_delete(bst_node_t **tree, char *key) {
   if(tree == NULL){
     return;
   }
@@ -89,10 +90,10 @@ void bst_delete(bst_node_t **tree, char key) {
   if(*tree == NULL){
     return;
   }
-  else if(rootPtr->key < key){
+  else if(strcmp(rootPtr->key, key) > 0){
     bst_delete(&(rootPtr->right), key);
   }
-  else if(key < rootPtr->key){
+  else if(strcmp(key, rootPtr->key) < 0){
     bst_delete(&(rootPtr->left), key);
   }
   else{
