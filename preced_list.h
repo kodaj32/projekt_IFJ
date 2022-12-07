@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parser.h"
 #include "scanner.h"
 
 
@@ -25,7 +24,8 @@ typedef enum prec_type{
     ID,           // i
     END_MARKER,   // $
     NON_TERMINAL, // E
-    HANDLE        // '<'
+    HANDLE,       // '<'
+    ERR           // wrong input
 }Prec_type;
 
 typedef struct PrecLLElement {
@@ -39,19 +39,15 @@ typedef struct{
     PrecElementPtr activeElement;
 }PrecLList;
 
+void Prec_LL_Error();
 void Prec_LL_Init( PrecLList *list );
 void Prec_LL_Dispose( PrecLList *list );
 void Prec_LL_InsertFirst( PrecLList *list, Prec_type dataPtr );
-void Prec_LL_InsertFirst_Elem(PrecLList *list, PrecElementPtr elem);
 void Prec_LL_First( PrecLList *list );
 void Prec_LL_GetFirst( PrecLList *list, Prec_type *dataPtr );
 void Prec_LL_DeleteFirst( PrecLList *list );
-void Prec_LL_DeleteAfter( PrecLList *list );
-void Prec_LL_InsertAfter_Elem(PrecLList *list, PrecElementPtr elem);
 void Prec_LL_InsertAfter( PrecLList *list, Prec_type data );
 void Prec_LL_Next( PrecLList *list );
-void Prec_LL_GetValue(PrecLList *list, Prec_type *dataPtr);
-void Prec_LL_SetValue( PrecLList *list, Prec_type data);
 int Prec_LL_IsActive(PrecLList *list);
 void Prec_LL_GetFirstTerminal( PrecLList *list, Prec_type *dataPtr );
 void Prec_LL_InsertBeforeFirstTerminal( PrecLList *list, Prec_type data );

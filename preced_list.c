@@ -1,6 +1,5 @@
-
+#include <stdbool.h>
 #include "preced_list.h"
-#include "parser.h"
 
 void Prec_LL_Error(){
     fprintf(stderr,"*ERROR* The program has performed an illegal operation.\n");
@@ -42,21 +41,6 @@ void Prec_LL_InsertFirst( PrecLList *list, Prec_type data ) {
 	list->firstElement = newElemPtr;
 }
 
-void Prec_LL_InsertFirst_Elem(PrecLList *list, PrecElementPtr elem){
-
-    if(list == NULL){
-        Prec_LL_Error();
-    }else{
-        if(list->firstElement == NULL){
-            list->firstElement = elem;
-            elem->nextElement = NULL;
-        }else{
-            elem->nextElement = list->firstElement;
-            list->firstElement = elem;
-        }
-    }    
-}
-
 void Prec_LL_First( PrecLList *list ) {
 
 	list->activeElement = list->firstElement;
@@ -73,6 +57,8 @@ void Prec_LL_GetFirst( PrecLList *list, Prec_type *dataPtr ) {
 }
 
 void Prec_LL_GetFirstTerminal( PrecLList *list, Prec_type *dataPtr ) {
+
+	Prec_LL_First(list);
 
 	if (list->firstElement == NULL) {
 		Prec_LL_Error();
@@ -100,12 +86,12 @@ void Prec_LL_RuleReduction( PrecLList *list ) {
 		Prec_LL_Error();
 	}
 
-	Prec_LL_GetFirst(list, firstPtr->data);
+	Prec_LL_GetFirst(list, &firstPtr->data);
 
 	if (firstPtr->data == ID) {
 
 		Prec_LL_DeleteFirst(list);
-		Prec_LL_GetFirst(list, firstPtr->data);
+		Prec_LL_GetFirst(list, &firstPtr->data);
 
 		if (firstPtr->data == HANDLE) {
 
@@ -117,17 +103,17 @@ void Prec_LL_RuleReduction( PrecLList *list ) {
 	else if (firstPtr->data == RIGHT_BR) {
 
 		Prec_LL_DeleteFirst(list);
-		Prec_LL_GetFirst(list, firstPtr->data);
+		Prec_LL_GetFirst(list, &firstPtr->data);
 
 		if (firstPtr->data == NON_TERMINAL) {
 
 			Prec_LL_DeleteFirst(list);
-			Prec_LL_GetFirst(list, firstPtr->data);
+			Prec_LL_GetFirst(list, &firstPtr->data);
 
 			if (firstPtr->data == LEFT_BR) {
 
 				Prec_LL_DeleteFirst(list);
-				Prec_LL_GetFirst(list, firstPtr->data);
+				Prec_LL_GetFirst(list, &firstPtr->data);
 
 				if (firstPtr->data == HANDLE) {
 
@@ -141,7 +127,7 @@ void Prec_LL_RuleReduction( PrecLList *list ) {
 	else if (firstPtr->data == NON_TERMINAL) {
 
 		Prec_LL_DeleteFirst(list);
-		Prec_LL_GetFirst(list, firstPtr->data);
+		Prec_LL_GetFirst(list, &firstPtr->data);
 
 		if ((firstPtr->data == PLUS) || (firstPtr->data == MIN) || (firstPtr->data == MUL) || 
 			(firstPtr->data == DIV) || (firstPtr->data == DOT) || (firstPtr->data == EQ) || 
@@ -149,12 +135,12 @@ void Prec_LL_RuleReduction( PrecLList *list ) {
 			(firstPtr->data == LESS_E) || (firstPtr->data == GREATER_E)) {
 
 			Prec_LL_DeleteFirst(list);
-			Prec_LL_GetFirst(list, firstPtr->data);
+			Prec_LL_GetFirst(list, &firstPtr->data);
 
 			if (firstPtr->data == NON_TERMINAL) {
 
 				Prec_LL_DeleteFirst(list);
-				Prec_LL_GetFirst(list, firstPtr->data);
+				Prec_LL_GetFirst(list, &firstPtr->data);
 
 				if (firstPtr->data == HANDLE) {
 
@@ -184,21 +170,6 @@ void Prec_LL_DeleteFirst( PrecLList *list ) {
 
 		list->firstElement = list->firstElement->nextElement;	
 		free(tmpElementPtr);
-	}
-}
-
-void Prec_LL_DeleteAfter( PrecLList *list ) {
-
-	struct PrecLLElement *tmpElementPtr;
-
-	if (list->activeElement != NULL)
-	{
-		if (list->activeElement->nextElement != NULL) {
-			tmpElementPtr = list->activeElement->nextElement;
-			list->activeElement->nextElement = tmpElementPtr->nextElement; 
-	
-			free(tmpElementPtr);
-		}
 	}
 }
 
@@ -260,42 +231,10 @@ void Prec_LL_InsertBeforeFirstTerminal( PrecLList *list, Prec_type data ) {
 	}
 }
 
-void Prec_LL_InsertAfter_Elem(PrecLList *list, PrecElementPtr elem){
-
-    if(list == NULL){
-        Prec_LL_Error();
-    }else{
-        if(list->activeElement == NULL){
-            Prec_LL_Error();
-        }else{
-            elem->nextElement = list->activeElement->nextElement;
-            list->activeElement->nextElement = elem;
-        }
-    }
-}
-
 void Prec_LL_Next( PrecLList *list ) {
 	if (list->activeElement != NULL)
 	{
 		list->activeElement = list->activeElement->nextElement;
-	}
-}
-
-void Prec_LL_GetValue(PrecLList *list, Prec_type *dataPtr){ 
-
-	if (list->activeElement == NULL){
-		Prec_LL_Error();
-	}
-	else{
-
-		*dataPtr = list->activeElement->data;
-	}
-}
-
-void Prec_LL_SetValue( PrecLList *list, Prec_type data ) {
-
-	if (list->activeElement != NULL) {
-		list->activeElement->data = data;
 	}
 }
 

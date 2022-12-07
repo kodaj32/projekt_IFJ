@@ -39,6 +39,10 @@ void bst_insert(bst_node_t **tree, char *key, tData_t value) {
     if(rootPtr == NULL){
       return;
     }
+    else{
+      exit(99);
+    }
+    
     rootPtr->key = key;
     rootPtr->value = value;
     rootPtr->left= NULL;

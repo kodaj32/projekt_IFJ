@@ -33,7 +33,9 @@ bool params(FILE *file, Token *token);
 bool params_n(FILE *file, Token *token);
 bool var(FILE *file, Token *token);
 bool operatorPrecedence(FILE *file, Token *token);
-void setInput(Prec_type *dataPtr, Token *token);
+void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag);
+bool local_stat_seq(FILE *file, Token *token);
+bool local_next_stat(FILE *file, Token *token);
 
 char precedenceTable[15][15] = {
     {'>','>','>','<','<','>','>','>','>','>','>','<','>','<','>'},
@@ -50,7 +52,7 @@ char precedenceTable[15][15] = {
     {'<','<','<','<','<','<','<','<','<','<','<','<','=','<','n'},
     {'>','>','>','>','>','>','>','>','>','>','>','n','>','n','>'},
     {'>','>','>','>','>','>','>','>','>','>','>','n','>','n','>'},
-    {'<','<','<','<','<','<','<','<','<','<','<','<','n','<','n'}
+    {'<','<','<','<','<','<','<','<','<','<','<','<','n','<','w'}
 };
 
 #endif
