@@ -37,7 +37,7 @@ typedef struct bst_node {
 } bst_node_t;
 
 void bst_init(bst_node_t **tree);
-int bst_insert(bst_node_t **tree, char *key, tData_t value);
+void bst_insert(bst_node_t **tree, char *key, tData_t value);
 tData_t bst_search(bst_node_t *tree, char *key, tData_t *value);
 void bst_delete(bst_node_t **tree, char *key);
 void bst_dispose(bst_node_t **tree);
