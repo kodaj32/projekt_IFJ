@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "linked_list.h"
 
 // Typ identifikatoru
 
@@ -26,6 +27,7 @@ typedef struct tData{
     bool called;                        // pozerame ci definovana funkcia bola volana
     struct bst_node *local_scope;       // pointer na lokalnu tabulku
     int params;                         // pocet parametrov funkcie
+    LList *func_params;                 // parametre funkcie, zoznam
 } *tData_t;
 
 // Uzol stromu
