@@ -15,6 +15,7 @@
 bool prog(FILE *file, Token *token) {
     
     if (token->type == T_HEAD) {
+        gen_init();
         getToken(file, token);
         return (stat_seq(file, token) && epilogue(file, token));
     }
@@ -92,6 +93,7 @@ bool epilogue(FILE *file, Token *token) {
 bool stat(FILE *file, Token *token) {
 
     if (token->type == T_RETURN) {
+        gen_function_return();
         getToken(file, token);
         return expr(file, token);
     }
@@ -248,6 +250,7 @@ bool args_n(FILE *file, Token *token) {
 }
 
 bool cond_stat(FILE *file, Token *token) {
+    gen_if_head();
 
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
@@ -259,13 +262,16 @@ bool cond_stat(FILE *file, Token *token) {
                     getToken(file, token);
                     if (local_stat_seq(file, token)) {
                         if (token->type == T_R_CUR_BRACKET) {
+                            gen_if_tail();
                             getToken(file, token);
                             if (token->type == T_ELSE) {
+                                gen_else_head();
                                 getToken(file, token);
                                 if (token->type == T_L_CUR_BRACKET) {
                                     getToken(file, token);
                                     if (local_stat_seq(file, token)) {
                                         if (token->type == T_R_CUR_BRACKET) {
+                                            gen_else_tail();
                                             getToken(file, token);
                                             return true;
                                         }
@@ -283,10 +289,12 @@ bool cond_stat(FILE *file, Token *token) {
 }
 
 bool while_cycle(FILE *file, Token *token) {
+    gen_while_head();
 
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
         getToken(file, token);
+        gen_while_cond();
         if (expr(file, token)) {
             if (token->type == T_R_BRACKET) {
                 getToken(file, token);
@@ -294,6 +302,7 @@ bool while_cycle(FILE *file, Token *token) {
                     getToken(file, token);
                     if (local_stat_seq(file, token)) {
                         if (token->type == T_R_CUR_BRACKET) {
+                            gen_while_tail();
                             getToken(file, token);
                             return true;
                         }
@@ -307,9 +316,12 @@ bool while_cycle(FILE *file, Token *token) {
 }
 
 bool fun_def(FILE *file, Token *token) {
+    Token *func_id;
 
     getToken(file, token);
     if (token->type == T_ID) {
+        func_id = token;
+        gen_function_definition_head(token);
         getToken(file, token);
         if (token->type == T_L_BRACKET) {
             getToken(file, token);
@@ -321,6 +333,7 @@ bool fun_def(FILE *file, Token *token) {
                             getToken(file, token);
                             if (local_stat_seq(file, token)) {
                                 if (token->type == T_R_CUR_BRACKET) {
+                                    gen_function_definition_tail(func_id);
                                     getToken(file, token);
                                     return true;
                                 }
@@ -404,6 +417,7 @@ bool params_n(FILE *file, Token *token) {
 bool var(FILE *file, Token *token) {
 
     if (token->type == T_VAR_ID) {
+        gen_variable_definition(token);
         getToken(file, token);
         return true;
     }
@@ -415,48 +429,48 @@ bool var(FILE *file, Token *token) {
 void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag) {
 
     if (token->type == T_PLUS) {
-
+        gen_expression_operator(token);
         *dataPtr = PLUS;   
     }
     else if (token->type == T_MINUS) {
-
+        gen_expression_operator(token);
         *dataPtr = MIN;         
     }
     else if (token->type == T_CONCAT) {
-
+        gen_expression_operator(token);
         *dataPtr = DOT;       
     }
     else if (token->type == T_DIV) {
-        
+        gen_expression_operator(token);
         *dataPtr = DIV;   
     }
     else if (token->type == T_MUL) {
-        
+        gen_expression_operator(token);
         *dataPtr = MUL;        
     }
     else if (token->type == T_EQUAL) {
-        
+        gen_expression_operator(token);
         *dataPtr = EQ;        
     }
     else if (token->type == T_NOT_EQUAL) {
-        
+        gen_expression_operator(token);
         *dataPtr = NOT_EQ;         
     }
     else if (token->type == T_LESS) {
-
+        gen_expression_operator(token);
         *dataPtr = LESS;        
     }
     else if (token->type == T_GREATER) {
-
+        gen_expression_operator(token);
         *dataPtr = GREATER;
       
     }
     else if (token->type == T_LESS_EQUAL) {
-
+        gen_expression_operator(token);
         *dataPtr = LESS_E;         
     }
     else if (token->type == T_GREATER_EQUAL) {
-
+        gen_expression_operator(token);
         *dataPtr = GREATER_E;         
     }
     else if (token->type == T_L_BRACKET) {
@@ -477,7 +491,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag) {
     else if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || 
              (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || 
              (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
-
+        gen_expression_operand(token);
         *dataPtr = ID;
     }
     else if (token->type == T_SEMICOLON) {
