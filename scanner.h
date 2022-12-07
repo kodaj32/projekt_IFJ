@@ -43,6 +43,7 @@ typedef enum state{
 
     STATE_INTEGER_VAL,
     STATE_NEAR_FLOAT_VAL,
+    STATE_FLOAT_DOT,
     STATE_FLOAT_VAL,
     STATE_FLOAT_EXP,
     STATE_FLOAT_EXP_VAL,
@@ -62,6 +63,7 @@ typedef enum state{
     STATE_GREATER,
 
     STATE_ID,
+    STATE_VAR,
     STATE_Q_MARK,
 
     STATE_FINAL
@@ -72,7 +74,8 @@ typedef enum state{
 typedef enum t_type{
     
     T_HEAD,             //<?php
-    T_PROLOG,           //?>
+                        //declare(strict_types=1)
+    T_EPILOGUE,           //?>
 
     //Keywords:
     T_ELSE,             //else
@@ -123,7 +126,7 @@ typedef enum t_type{
 //Token structure
 typedef struct token{
     Type_token type;
-    char attribute[50];
+    char attribute[1000];
 }Token;
 
 /**
@@ -132,6 +135,27 @@ typedef struct token{
  * @return int -- 1 if an error is indicated else 0
  */
 int openFile(char *filename, FILE **file);
+
+/**
+ * @param octal Number in octal form 
+ * @return int Decimal form of octal number
+ */
+int octalToDecimal(int octal);
+
+/**
+ * @param hexa Number in hexadecimal form
+ * @return int Decimal form of hexadecimal
+ */
+int hexaToDecimal(char *hexa);
+
+/**
+ * @brief Detect head <?php
+ *                    declare(strict_types=1);
+ * 
+ * @param file Pointer to file 
+ * @return int 1 if an error occur else 0
+ */
+int detectHead(FILE *file);
 
 /**
  * 

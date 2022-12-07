@@ -1,3 +1,6 @@
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,3 +29,5 @@ void LL_Next( LList *list );
 void LL_GetValue(LList *list, Token *dataPtr);
 void LL_SetValue( LList *list, Token data);
 int LL_IsActive(LList *list);
+
+#endif

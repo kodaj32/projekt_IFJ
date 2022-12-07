@@ -6,16 +6,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "generator.h"
 #include "scanner.h"
 #include "linked_list.h"
 
-/* Outputting macros for code generation */
+/** Outputting macros for code generation */
 #define print(str)              printf("%s", str)                 // prints string
 #define println(str)            printf("%s\n", str)               // prints string & EOL
 #define printeol()              printf("\n")                      // prints EOL
 #define printcnt(str, cnt)      printf("%s%d\n", str, cnt)        // prints string & counter
 #define printch(ch)             printf("%c", ch)                  // prints character
-#define printd(dec)             printf("%02d", dec)               // prints decimal (integer)
+#define printd(dec)             printf("%03d", dec)               // prints decimal (integer)
 #define printflt(flt)           printf("%a", strtod(flt, NULL))   // prints float
 #define printfrmt(tok, flgs)    print_formatted_token(tok, flgs)  // prints formatted token
 
@@ -27,7 +28,22 @@
 /** Static repetitive components of final generated code */
 #define TMP1 "GF@$1" // Used for temporary intermediate values
 
+/**
+ * Generate standard built-in function definitions.
+ */
 static void gen_built_in();
+
+/**
+ * Prints correctly formatted symbol token. todo nie iba symbol alebo to skor presunut
+ *
+ * @param token Symbol token.
+ * @param flags Flags adjusting print format.
+ * Flags (see definitions of corresponding macros):
+ *  x....... FLAG_TYPE_ONLY
+ *  .x...... FLAG_TF
+ *  ..x..... FLAG_NF
+ *  ...xxxxx Reserved (no use)
+ */
 static void print_formatted_token(Token *const token, char const flags);
 
 /// Incrementing counters for labels
@@ -141,7 +157,8 @@ void gen_else_tail() {
 }
 
 void gen_function_call(Token *const function_token, LList *variable_token_list, LList *symbol_token_list) {
-    Token *variable_token, *symbol_token;
+    Token *variable_token = NULL;
+    Token *symbol_token = NULL;
 
     println("CREATEFRAME");
 
@@ -274,7 +291,7 @@ static void print_formatted_token(Token *const token, char const flags) {
             } else { // Format string with escape sequences
                 print("string@");
                 char ch;
-                for (int i = 0; i < strlen(token->attribute); ++i) {
+                for (int i = 0; i < (int) strlen(token->attribute); ++i) {
                     if ((ch = token->attribute[i]) == '\\' || ch == '#' || (ch <= 32 && ch >= 0)) {
                         printch('\\');
                         printd(ch);
