@@ -383,52 +383,137 @@ bool var(FILE *file, Token *token) {
     }    
 }
 
-void setInput(Prec_type *dataPtr, Token *token) {
+void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag) {
 
     if (token->type == T_PLUS) {
-        *dataPtr = PLUS;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = PLUS;
+            *prevOpFlag = 1;
+        }        
     }
     else if (token->type == T_MINUS) {
-        *dataPtr = MIN;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = MIN;
+            *prevOpFlag = 1;
+        }          
     }
     else if (token->type == T_CONCAT) {
-        *dataPtr = DOT;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = DOT;
+            *prevOpFlag = 1;
+        }        
     }
     else if (token->type == T_DIV) {
-        *dataPtr = DIV;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = DIV;
+            *prevOpFlag = 1;
+        }        
     }
     else if (token->type == T_MUL) {
-        *dataPtr = MUL;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = MUL;
+            *prevOpFlag = 1;
+        }          
     }
     else if (token->type == T_EQUAL) {
-        *dataPtr = EQ;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = EQ;
+            *prevOpFlag = 1;
+        }          
     }
     else if (token->type == T_NOT_EQUAL) {
-        *dataPtr = NOT_EQ;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = NOT_EQ;
+            *prevOpFlag = 1;
+        }          
     }
     else if (token->type == T_LESS) {
-        *dataPtr = LESS;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = LESS;
+            *prevOpFlag = 1;
+        }          
     }
     else if (token->type == T_GREATER) {
-        *dataPtr = GREATER;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = GREATER;
+            *prevOpFlag = 1;
+        }          
     }
     else if (token->type == T_LESS_EQUAL) {
-        *dataPtr = LESS_E;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = LESS_E;
+            *prevOpFlag = 1;
+        }          
     }
     else if (token->type == T_GREATER_EQUAL) {
-        *dataPtr = GREATER_E;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = GREATER_E;
+            *prevOpFlag = 1;
+        }          
     }
     else if (token->type == T_L_BRACKET) {
-        *dataPtr = LEFT_BR;
+        if (*prevOpFlag == 0) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = LEFT_BR;
+            *prevOpFlag = 1;
+        } 
+        
     }
     else if (token->type == T_R_BRACKET) {
-        *dataPtr = RIGHT_BR;
+        if (*prevOpFlag == 1) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = RIGHT_BR;
+            *prevOpFlag = 0;
+        }
     }
     else if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || 
              (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || 
              (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
 
-        *dataPtr = ID;
+        if (*prevOpFlag == 0) {
+            *dataPtr = END_MARKER;
+        }
+        else {
+            *dataPtr = ID;
+            *prevOpFlag = 0;
+        } 
     }
     else {
         *dataPtr = END_MARKER;
@@ -444,6 +529,12 @@ bool operatorPrecedence(FILE *file, Token *token) {
     Prec_LL_Init(&list);
     Prec_LL_InsertFirst(&list, END_MARKER);
 
+    /**
+     * 0 --> operand
+     * 1 --> operator
+    */
+    int *prevOpFlag = 0;
+
     // vytvori sa vstupna premenna
     PrecElementPtr input = malloc(sizeof(struct PrecLLElement));
     if (input == NULL) {
@@ -457,7 +548,7 @@ bool operatorPrecedence(FILE *file, Token *token) {
     while (repeat) {
 
         // setInput
-        setInput(&input->data, token);
+        setInput(&input->data, token, prevOpFlag);
         if (input->data == END_MARKER) {
             return false;
         }
