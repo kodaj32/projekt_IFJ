@@ -104,8 +104,8 @@ typedef enum t_type{
     T_L_CUR_BRACKET,    // {
     T_R_CUR_BRACKET,    // }
     T_DOUBLE_DOT,       // :
-    T_ID,               // represents an identifier
-    T_VAR_ID,           // $
+    T_ID,               // represents an identifier of function
+    T_VAR_ID,           // represents an identifier of variable
     T_TYPE_ID,          // ?
 
     T_INT_VAL,          // integer value
