@@ -33,7 +33,7 @@ bool params(FILE *file, Token *token);
 bool params_n(FILE *file, Token *token);
 bool var(FILE *file, Token *token);
 bool operatorPrecedence(FILE *file, Token *token);
-void setInput(Prec_type *dataPtr, Token *token, int *prevOpFlag);
+void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag);
 
 char precedenceTable[15][15] = {
     {'>','>','>','<','<','>','>','>','>','>','>','<','>','<','>'},
