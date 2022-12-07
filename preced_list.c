@@ -71,3 +71,66 @@ void Prec_LL_DeleteFirst( PrecLList *list ) {
 		free(tmpElementPtr);
 	}
 }
+
+void Prec_LL_DeleteAfter( PrecLList *list ) {
+
+	struct PrecLLElement *tmpElementPtr;
+
+	if (list->activeElement != NULL)
+	{
+		if (list->activeElement->nextElement != NULL) {
+			tmpElementPtr = list->activeElement->nextElement;
+			list->activeElement->nextElement = tmpElementPtr->nextElement; 
+	
+			free(tmpElementPtr);
+		}
+	}
+}
+
+void Prec_LL_InsertAfter( PrecLList *list, Prec_type data ) {
+
+	struct PrecLLElement *newElementPtr;
+	
+	if (list->activeElement != NULL)
+	{
+		newElementPtr = malloc(sizeof(struct PrecLLElement));
+		if (newElementPtr == NULL){
+			Prec_LL_Error();
+		}
+
+		newElementPtr->data = data;
+		newElementPtr->nextElement = list->activeElement->nextElement;
+		list->activeElement->nextElement = newElementPtr;
+
+	}
+}
+
+void Prec_LL_Next( PrecLList *list ) {
+	if (list->activeElement != NULL)
+	{
+		list->activeElement = list->activeElement->nextElement;
+	}
+}
+
+void Prec_LL_GetValue(PrecLList *list, Prec_type *dataPtr){ 
+
+	if (list->activeElement == NULL){
+		Prec_LL_Error();
+	}
+	else{
+
+		*dataPtr = list->activeElement->data;
+	}
+}
+
+void Prec_LL_SetValue( PrecLList *list, Prec_type data ) {
+
+	if (list->activeElement != NULL) {
+		list->activeElement->data = data;
+	}
+}
+
+int Prec_LL_IsActive(PrecLList *list){
+
+	return (list->activeElement != NULL) ? 1 : 0;
+}
