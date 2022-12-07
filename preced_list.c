@@ -1,6 +1,5 @@
-
+#include <stdbool.h>
 #include "preced_list.h"
-#include "parser.h"
 
 void Prec_LL_Error(){
     fprintf(stderr,"*ERROR* The program has performed an illegal operation.\n");

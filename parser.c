@@ -1,10 +1,7 @@
 #include "parser.h"
-#include "scanner.c"
 #include "scanner.h"
-#include "generator.c"
 #include "symtable.h"
 #include "preced_list.h"
-#include "preced_list.c"
 
 #include <stdio.h>
 #include <stdbool.h>
