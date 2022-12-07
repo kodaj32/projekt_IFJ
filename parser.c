@@ -3,6 +3,8 @@
 #include "scanner.h"
 #include "generator.c"
 #include "symtable.h"
+#include "preced_list.h"
+#include "preced_list.c"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -21,7 +23,10 @@ bool prog(FILE *file, Token *token) {
 
 bool stat_seq(FILE *file, Token *token) {
 
-    if ((token->type == T_ID) || (token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+    if ((token->type == T_ID) || (token->type == T_RETURN) || 
+        (token->type == T_IF) || (token->type == T_WHILE) || 
+        (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+
         return (stat(file, token) && next_stat(file, token));
     }
     else {
@@ -89,7 +94,11 @@ bool next_stat(FILE *file, Token *token) {
     else if (token->type == T_EOF) {
         return true;
     }
-    else if (token->type == T_SEMICOLON) {
+    else if ((token->type == T_SEMICOLON) || (token->type == T_ID) || 
+             (token->type == T_RETURN) || (token->type == T_IF) || 
+             (token->type == T_WHILE) || (token->type == T_FUNCTION) || 
+             (token->type == T_VAR_ID)) {
+
         return (terminator(file, token) && stat(file, token) && next_stat(file, token));
     }
     else {
@@ -103,7 +112,10 @@ bool terminator(FILE *file, Token *token) {
         getToken(file, token);
         return true;
     }
-    else if ((token->type == T_ID) || (token->type == T_RETURN) || (token->type == T_IF) || (token->type == T_WHILE) || (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+    else if ((token->type == T_ID) || (token->type == T_RETURN) || 
+             (token->type == T_IF) || (token->type == T_WHILE) || 
+             (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+
         return true;
     }
     else {
@@ -124,16 +136,16 @@ bool assign(FILE *file, Token *token){
 
 bool expr(FILE *file, Token *token) {
 
-    // tu niekde bude prepnutie do precedencnej analyzy, zatial neviem este na zaklade coho posudit
+    // switch to operator precedence
     
-    if ((token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
-        return val(file, token);
+    if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || 
+        (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || 
+        (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
+
+        return operatorPrecedence(file, token);
     }
     else if(token->type == T_ID) {
         return fun_call(file, token);
-    }
-    else if (token->type == T_VAR_ID) {
-        return var(file, token);
     }
     else {
         return false;
@@ -164,7 +176,10 @@ bool fun_call(FILE *file, Token *token) {
 
 bool args(FILE *file, Token *token) {
 
-    if ((token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || (token->type == T_NULL) || (token->type == T_VAR_ID)) {
+    if ((token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || 
+        (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || 
+        (token->type == T_NULL) || (token->type == T_VAR_ID)) {
+
         return (arg(file, token) && args_n(file, token));
     }
     else if (token->type == T_R_BRACKET) {
@@ -177,7 +192,9 @@ bool args(FILE *file, Token *token) {
 
 bool arg(FILE *file, Token *token) {
 
-    if ((token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
+    if ((token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || 
+        (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
+
         return val(file, token);
     }
     else if (token->type == T_VAR_ID) {
@@ -330,7 +347,9 @@ bool params(FILE *file, Token *token) {
         getToken(file, token);
         return true;
     }
-    else if ((token->type == T_TYPE_ID) || (token->type == T_INT) || (token->type == T_FLOAT) || (token->type == T_VOID)) {
+    else if ((token->type == T_TYPE_ID) || (token->type == T_INT) || 
+             (token->type == T_FLOAT) || (token->type == T_VOID)) {
+
         return (type(file, token) && var(file, token) && params_n(file, token));
     }
     else {
@@ -364,9 +383,128 @@ bool var(FILE *file, Token *token) {
     }    
 }
 
+void setInput(Prec_type *dataPtr, Token *token) {
+
+    if (token->type == T_PLUS) {
+        dataPtr = PLUS;
+    }
+    else if (token->type == T_MINUS) {
+        dataPtr = MIN;
+    }
+    else if (token->type == T_CONCAT) {
+        dataPtr = DOT;
+    }
+    else if (token->type == T_DIV) {
+        dataPtr = DIV;
+    }
+    else if (token->type == T_MUL) {
+        dataPtr = MUL;
+    }
+    else if (token->type == T_EQUAL) {
+        dataPtr = EQ;
+    }
+    else if (token->type == T_NOT_EQUAL) {
+        dataPtr = NOT_EQ;
+    }
+    else if (token->type == T_LESS) {
+        dataPtr = LESS;
+    }
+    else if (token->type == T_GREATER) {
+        dataPtr = GREATER;
+    }
+    else if (token->type == T_LESS_EQUAL) {
+        dataPtr = LESS_E;
+    }
+    else if (token->type == T_GREATER_EQUAL) {
+        dataPtr = GREATER_E;
+    }
+    else if (token->type == T_L_BRACKET) {
+        dataPtr = LEFT_BR;
+    }
+    else if (token->type == T_R_BRACKET) {
+        dataPtr = RIGHT_BR;
+    }
+    else if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || 
+             (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || 
+             (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
+
+        dataPtr = ID;
+    }
+    else {
+        dataPtr = END_MARKER;
+    }
+}
+
 bool operatorPrecedence(FILE *file, Token *token) {
 
-    return false;
+    bool repeat = true;
+
+    // inicializuje sa zoznam/stack
+    struct PrecLList *list;
+    Prec_LL_Init(list);
+    Prec_LL_InsertFirst(list, END_MARKER);
+
+    // vytvori sa vstupna premenna
+    PrecElementPtr input = malloc(sizeof(struct PrecLLElement));
+    if (input == NULL) {
+        Prec_LL_Error();
+    }
+    PrecElementPtr top = malloc(sizeof(struct PrecLLElement));
+    if (top == NULL) {
+        Prec_LL_Error();
+    }
+
+    while (repeat) {
+
+        // setInput
+        setInput(input->data, token);
+        if (input->data == END_MARKER) {
+            return false;
+        }
+
+        // top = getFirst
+        Prec_LL_First(list);
+        Prec_LL_GetFirstTerminal(list, top->data);
+
+        // op = table[a][b];
+        char op = precedenceTable[top->data][input->data];
+
+        // if op == '=' then InsertFirst
+        // else if op == '<' then InsertBeforeFirstTerminal
+        // else if op == '>' ruleReduction
+        if (op == '=') {
+            Prec_LL_InsertFirst(list, input->data);
+        }
+        else if (op == '<') {
+            Prec_LL_InsertBeforeFirstTerminal(list, HANDLE);
+            Prec_LL_InsertFirst(list, input->data);
+        }
+        else if (op == '>') {
+            // pravdepodobne sa bude definicia funkcie presuvať do parser.c
+            Prec_LL_RuleReduction(list);
+        }
+        else {
+            return false;
+        }
+
+        getToken(file, token);
+
+        Prec_LL_GetFirstTerminal(list, top->data);
+
+        // end of expression
+        if (((top->data == END_MARKER) && (token->type == T_SEMICOLON)) ||
+            ((top->data == END_MARKER) && (token->type == T_R_BRACKET))) {
+
+            repeat = false;
+        }
+
+        
+    }
+
+    free(input);
+    free(top);
+
+    return true;
 }
 
 int main(int argc, char *argv[]) {
