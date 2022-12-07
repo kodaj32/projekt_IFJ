@@ -227,6 +227,8 @@ int getToken(FILE *file, Token *token){
     char oct[10];
     char hex[10];
     strcpy(str,"");
+    strcpy(oct,"");
+    strcpy(hex,"");
 
     if(!head_detected){
 
@@ -622,7 +624,7 @@ int getToken(FILE *file, Token *token){
                 case STATE_ESC_SEQ_OCT_2:
                     if(curr_char >= '0' && curr_char < '8'){
                         strncat(oct, &curr_char,1);
-
+                        
                         char c = (char)octalToDecimal(atoi(oct));
                         strncat(str, &c, 1);
 
