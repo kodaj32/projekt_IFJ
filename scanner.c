@@ -604,7 +604,7 @@ int getToken(FILE *file, Token *token){
                     }else{
                         strcat(str,"\\");
                         ungetc(curr_char, file);
-                        //strncat(str, &curr_char,1);
+                        
                         curr_state = STATE_STRING_START;
                     }
                     break;
@@ -614,7 +614,7 @@ int getToken(FILE *file, Token *token){
                         curr_state = STATE_ESC_SEQ_OCT_2;
                     }else{
                         strcat(str,"\\");
-                        //strncat(oct, &curr_char,1);
+                        
                         ungetc(curr_char,file);
                         strcat(str, oct);
                         strcpy(oct, "");
