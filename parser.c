@@ -386,52 +386,52 @@ bool var(FILE *file, Token *token) {
 void setInput(Prec_type *dataPtr, Token *token) {
 
     if (token->type == T_PLUS) {
-        dataPtr = PLUS;
+        *dataPtr = PLUS;
     }
     else if (token->type == T_MINUS) {
-        dataPtr = MIN;
+        *dataPtr = MIN;
     }
     else if (token->type == T_CONCAT) {
-        dataPtr = DOT;
+        *dataPtr = DOT;
     }
     else if (token->type == T_DIV) {
-        dataPtr = DIV;
+        *dataPtr = DIV;
     }
     else if (token->type == T_MUL) {
-        dataPtr = MUL;
+        *dataPtr = MUL;
     }
     else if (token->type == T_EQUAL) {
-        dataPtr = EQ;
+        *dataPtr = EQ;
     }
     else if (token->type == T_NOT_EQUAL) {
-        dataPtr = NOT_EQ;
+        *dataPtr = NOT_EQ;
     }
     else if (token->type == T_LESS) {
-        dataPtr = LESS;
+        *dataPtr = LESS;
     }
     else if (token->type == T_GREATER) {
-        dataPtr = GREATER;
+        *dataPtr = GREATER;
     }
     else if (token->type == T_LESS_EQUAL) {
-        dataPtr = LESS_E;
+        *dataPtr = LESS_E;
     }
     else if (token->type == T_GREATER_EQUAL) {
-        dataPtr = GREATER_E;
+        *dataPtr = GREATER_E;
     }
     else if (token->type == T_L_BRACKET) {
-        dataPtr = LEFT_BR;
+        *dataPtr = LEFT_BR;
     }
     else if (token->type == T_R_BRACKET) {
-        dataPtr = RIGHT_BR;
+        *dataPtr = RIGHT_BR;
     }
     else if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || 
              (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || 
              (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
 
-        dataPtr = ID;
+        *dataPtr = ID;
     }
     else {
-        dataPtr = END_MARKER;
+        *dataPtr = END_MARKER;
     }
 }
 
@@ -440,9 +440,9 @@ bool operatorPrecedence(FILE *file, Token *token) {
     bool repeat = true;
 
     // inicializuje sa zoznam/stack
-    struct PrecLList *list;
-    Prec_LL_Init(list);
-    Prec_LL_InsertFirst(list, END_MARKER);
+    PrecLList list;
+    Prec_LL_Init(&list);
+    Prec_LL_InsertFirst(&list, END_MARKER);
 
     // vytvori sa vstupna premenna
     PrecElementPtr input = malloc(sizeof(struct PrecLLElement));
@@ -457,14 +457,14 @@ bool operatorPrecedence(FILE *file, Token *token) {
     while (repeat) {
 
         // setInput
-        setInput(input->data, token);
+        setInput(&input->data, token);
         if (input->data == END_MARKER) {
             return false;
         }
 
         // top = getFirst
-        Prec_LL_First(list);
-        Prec_LL_GetFirstTerminal(list, top->data);
+        Prec_LL_First(&list);
+        Prec_LL_GetFirstTerminal(&list, &top->data);
 
         // op = table[a][b];
         char op = precedenceTable[top->data][input->data];
@@ -473,15 +473,15 @@ bool operatorPrecedence(FILE *file, Token *token) {
         // else if op == '<' then InsertBeforeFirstTerminal
         // else if op == '>' ruleReduction
         if (op == '=') {
-            Prec_LL_InsertFirst(list, input->data);
+            Prec_LL_InsertFirst(&list, input->data);
         }
         else if (op == '<') {
-            Prec_LL_InsertBeforeFirstTerminal(list, HANDLE);
-            Prec_LL_InsertFirst(list, input->data);
+            Prec_LL_InsertBeforeFirstTerminal(&list, HANDLE);
+            Prec_LL_InsertFirst(&list, input->data);
         }
         else if (op == '>') {
-            // pravdepodobne sa bude definicia funkcie presuvať do parser.c
-            Prec_LL_RuleReduction(list);
+            
+            Prec_LL_RuleReduction(&list);
         }
         else {
             return false;
@@ -489,18 +489,17 @@ bool operatorPrecedence(FILE *file, Token *token) {
 
         getToken(file, token);
 
-        Prec_LL_GetFirstTerminal(list, top->data);
+        Prec_LL_GetFirstTerminal(&list, &top->data);
 
         // end of expression
         if (((top->data == END_MARKER) && (token->type == T_SEMICOLON)) ||
             ((top->data == END_MARKER) && (token->type == T_R_BRACKET))) {
 
             repeat = false;
-        }
-
-        
+        }        
     }
 
+    Prec_LL_Dispose(&list);
     free(input);
     free(top);
 
