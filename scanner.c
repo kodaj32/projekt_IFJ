@@ -443,7 +443,7 @@ int getToken(FILE *file, Token *token){
                     if(curr_char == '='){
                         curr_state = STATE_NEAR_NOT_EQUAL;
                     }else{
-                        return 1;   
+                        exit(1);   
                     }
                     break;
                 case  STATE_NEAR_NOT_EQUAL:
@@ -451,7 +451,7 @@ int getToken(FILE *file, Token *token){
                         token->type = T_NOT_EQUAL;
                         curr_state = STATE_FINAL;
                     }else{
-                        return 1;
+                        exit(1);
                     }
                     break;
 
