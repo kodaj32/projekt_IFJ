@@ -16,7 +16,7 @@ bool stat_seq(FILE *file, Token *token);
 bool next_stat(FILE *file, Token *token);
 bool terminator(FILE *file, Token *token);
 bool stat(FILE *file, Token *token);
-bool assign(FILE *file, Token *token);
+bool assign(FILE *file, Token *token,Token *var_id);
 bool expr(FILE *file, Token *token);
 bool val(FILE *file, Token *token);
 bool fun_call(FILE *file, Token *token);

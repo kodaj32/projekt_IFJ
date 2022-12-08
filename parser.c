@@ -110,7 +110,8 @@ bool stat(FILE *file, Token *token) {
         return fun_def(file, token);
     }
     else if (token->type == T_VAR_ID) {
-        return (var(file, token) && assign(file,token));
+        Token *var_id;
+        return (var(file, token) && assign(file,token,var_id));
     }
     else if ((token->type == T_EPILOGUE) || (token->type == T_EOF) || (token->type == T_R_CUR_BRACKET)) {
         return true;
@@ -154,11 +155,13 @@ bool terminator(FILE *file, Token *token) {
     }    
 }
 
-bool assign(FILE *file, Token *token){
+bool assign(FILE *file, Token *token, Token *var_id){
 
     if (token->type == T_ASSIGN) {
         getToken(file, token);
-        return expr(file, token);
+        bool is_done = expr(file, token);
+        gen_variable_assignment_of_expression(var_id);
+        return is_done;
     }
     else {
         return false;
@@ -567,6 +570,7 @@ bool operatorPrecedence(FILE *file, Token *token) {
             return false;
         }          
     }
+    
 
     Prec_LL_Dispose(&list);
     free(input);
