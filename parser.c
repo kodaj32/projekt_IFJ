@@ -1,7 +1,7 @@
 #include "parser.h"
 #include "scanner.h"
 #include "generator.h"
-#include "symtable.h"
+//#include "symtable.h"
 #include "preced_list.h"
 
 #include <stdio.h>
@@ -12,45 +12,45 @@
  * Each bool function is an implemented rule from LL-grammar.
  * We check the token type from input and based on LL-table choose the designated rule to call.
 */
-bool prog(FILE *file, Token *token) {
+bool prog(FILE *file, Token *token, bst_node_t *table) {
     
     if (token->type == T_HEAD) {
         gen_init();
         getToken(file, token);
-        return (stat_seq(file, token) && epilogue(file, token));
+        return (stat_seq(file, token, table) && epilogue(file, token));
     }
     else {
         return false;
     }
 }
 
-bool stat_seq(FILE *file, Token *token) {
+bool stat_seq(FILE *file, Token *token, bst_node_t *table) {
 
     if ((token->type == T_ID) || (token->type == T_RETURN) || 
         (token->type == T_IF) || (token->type == T_WHILE) || 
         (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
 
-        return (stat(file, token) && next_stat(file, token));
+        return (stat(file, token, table) && next_stat(file, token, table));
     }
     else {
         return false;
     }
 }
 
-bool local_stat_seq(FILE *file, Token *token) {
+bool local_stat_seq(FILE *file, Token *token, bst_node_t* table) {
 
     if ((token->type == T_ID) || (token->type == T_RETURN) || 
         (token->type == T_IF) || (token->type == T_WHILE) || 
         (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
 
-        return (stat(file, token) && local_next_stat(file, token));
+        return (stat(file, token, table) && local_next_stat(file, token, table));
     }
     else {
         return false;
     }
 }
 
-bool local_next_stat(FILE *file, Token *token) {
+bool local_next_stat(FILE *file, Token *token, bst_node_t *table) {
 
     if ((token->type == T_R_CUR_BRACKET)) {
         return true;
@@ -60,7 +60,7 @@ bool local_next_stat(FILE *file, Token *token) {
              (token->type == T_WHILE) || (token->type == T_FUNCTION) || 
              (token->type == T_VAR_ID)) {
 
-        return (terminator(file, token) && stat(file, token) && local_next_stat(file, token));
+        return (terminator(file, token) && stat(file, token, table) && local_next_stat(file, token, table));
     }
     else {
         return false;
@@ -90,7 +90,7 @@ bool epilogue(FILE *file, Token *token) {
     }
 }
 
-bool stat(FILE *file, Token *token) {
+bool stat(FILE *file, Token *token, bst_node_t *table) {
 
     if (token->type == T_RETURN) {
         gen_function_return();
@@ -101,16 +101,16 @@ bool stat(FILE *file, Token *token) {
         return fun_call(file, token);
     }
     else if (token->type == T_IF) {
-        return cond_stat(file, token);
+        return cond_stat(file, token, table);
     }
     else if (token->type == T_WHILE) {
-        return while_cycle(file, token);
+        return while_cycle(file, token,table);
     }
     else if (token->type == T_FUNCTION) {
-        return fun_def(file, token);
+        return fun_def(file, token, table);
     }
     else if (token->type == T_VAR_ID) {
-        Token *var_id;
+        Token *var_id = token;
         return (var(file, token) && assign(file,token,var_id));
     }
     else if ((token->type == T_EPILOGUE) || (token->type == T_EOF) || (token->type == T_R_CUR_BRACKET)) {
@@ -121,7 +121,7 @@ bool stat(FILE *file, Token *token) {
     }
 }
 
-bool next_stat(FILE *file, Token *token) {
+bool next_stat(FILE *file, Token *token, bst_node_t* table) {
 
     if ((token->type == T_EPILOGUE) || (token->type == T_EOF)) {
         return true;
@@ -131,7 +131,7 @@ bool next_stat(FILE *file, Token *token) {
              (token->type == T_WHILE) || (token->type == T_FUNCTION) || 
              (token->type == T_VAR_ID)) {
 
-        return (terminator(file, token) && stat(file, token) && next_stat(file, token));
+        return (terminator(file, token) && stat(file, token, table) && next_stat(file, token, table));
     }
     else {
         return false;
@@ -252,7 +252,7 @@ bool args_n(FILE *file, Token *token) {
     }    
 }
 
-bool cond_stat(FILE *file, Token *token) {
+bool cond_stat(FILE *file, Token *token, bst_node_t *table) {
     gen_if_head();
 
     getToken(file, token);
@@ -263,7 +263,7 @@ bool cond_stat(FILE *file, Token *token) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
                     getToken(file, token);
-                    if (local_stat_seq(file, token)) {
+                    if (local_stat_seq(file, token, table)) {
                         if (token->type == T_R_CUR_BRACKET) {
                             gen_if_tail();
                             getToken(file, token);
@@ -272,7 +272,7 @@ bool cond_stat(FILE *file, Token *token) {
                                 getToken(file, token);
                                 if (token->type == T_L_CUR_BRACKET) {
                                     getToken(file, token);
-                                    if (local_stat_seq(file, token)) {
+                                    if (local_stat_seq(file, token, table)) {
                                         if (token->type == T_R_CUR_BRACKET) {
                                             gen_else_tail();
                                             getToken(file, token);
@@ -291,7 +291,7 @@ bool cond_stat(FILE *file, Token *token) {
     return false;
 }
 
-bool while_cycle(FILE *file, Token *token) {
+bool while_cycle(FILE *file, Token *token, bst_node_t* table) {
     gen_while_head();
 
     getToken(file, token);
@@ -303,7 +303,7 @@ bool while_cycle(FILE *file, Token *token) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
                     getToken(file, token);
-                    if (local_stat_seq(file, token)) {
+                    if (local_stat_seq(file, token, table)) {
                         if (token->type == T_R_CUR_BRACKET) {
                             gen_while_tail();
                             getToken(file, token);
@@ -318,7 +318,7 @@ bool while_cycle(FILE *file, Token *token) {
     return false;
 }
 
-bool fun_def(FILE *file, Token *token) {
+bool fun_def(FILE *file, Token *token, bst_node_t *table) {
     Token *func_id;
 
     getToken(file, token);
@@ -334,7 +334,7 @@ bool fun_def(FILE *file, Token *token) {
                     if (type(file, token)) {
                         if (token->type == T_L_CUR_BRACKET) {
                             getToken(file, token);
-                            if (local_stat_seq(file, token)) {
+                            if (local_stat_seq(file, token, table)) {
                                 if (token->type == T_R_CUR_BRACKET) {
                                     gen_function_definition_tail(func_id);
                                     getToken(file, token);
@@ -588,15 +588,15 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    bst_node_t *sym_table;
-    bst_init(sym_table);
+    bst_node_t *sym_table ;
+    bst_init(&sym_table);
 
     /** Initialize token structure and get first token */
     Token token;
     getToken(fp, &token);
 
     /** Start the syntax analysis */
-    if (prog(fp, &token)) {
+    if (prog(fp, &token, sym_table)) {
 
         
         return 0; // syntax analysis finished without any error
