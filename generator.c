@@ -60,7 +60,6 @@ void gen_init() {
     println(".IFJcode22");
     print("DEFVAR ");
     println(TMP1);
-    print("DEFVAR ");
     println("CREATEFRAME");
     println("PUSHFRAME");
     printeol();
@@ -157,8 +156,7 @@ void gen_else_tail() {
 }
 
 void gen_function_call(Token *const function_token, LList *variable_token_list, LList *symbol_token_list) {
-    Token *variable_token = NULL;
-    Token *symbol_token = NULL;
+    Token variable_token, symbol_token;
 
     println("CREATEFRAME");
 
@@ -167,15 +165,15 @@ void gen_function_call(Token *const function_token, LList *variable_token_list, 
 
     // Iterate through lists, define and initialize function's arguments
     while(LL_IsActive(variable_token_list) && LL_IsActive(symbol_token_list)) {
-        LL_GetValue(variable_token_list, variable_token);
-        LL_GetValue(symbol_token_list, symbol_token);
+        LL_GetValue(variable_token_list, &variable_token);
+        LL_GetValue(symbol_token_list, &symbol_token);
 
         print("DEFVAR ");
-        printfrmt(variable_token, FLAG_TF | FLAG_NL);
+        printfrmt(&variable_token, FLAG_TF | FLAG_NL);
         print("MOVE ");
-        printfrmt(variable_token, FLAG_TF);
+        printfrmt(&variable_token, FLAG_TF);
         print(" ");
-        printfrmt(symbol_token, FLAG_NL);
+        printfrmt(&symbol_token, FLAG_NL);
 
         LL_Next(variable_token_list);
         LL_Next(symbol_token_list);
@@ -210,7 +208,7 @@ static void gen_built_in() {
     strcpy(function_token.attribute, "reads");
     gen_function_definition_head(&function_token);
     print("READ ");
-    println(TMP1);
+    print(TMP1);
     println(" string");
     print("PUSHS ");
     println(TMP1);
@@ -221,7 +219,7 @@ static void gen_built_in() {
     strcpy(function_token.attribute, "readi");
     gen_function_definition_head(&function_token);
     print("READ ");
-    println(TMP1);
+    print(TMP1);
     println(" int");
     print("PUSHS ");
     println(TMP1);
@@ -232,7 +230,7 @@ static void gen_built_in() {
     strcpy(function_token.attribute, "readf");
     gen_function_definition_head(&function_token);
     print("READ ");
-    println(TMP1);
+    print(TMP1);
     println(" float");
     print("PUSHS ");
     println(TMP1);
@@ -251,7 +249,7 @@ static void gen_built_in() {
     gen_function_return();
     gen_function_definition_tail(&function_token);
 
-    /* function strlen(string $s) : int */
+    /* function strlen(string $s) : int */ // todo vstavane funckie niektore chybaju
 //    strcpy(function_token.attribute, "strlen");
 //    gen_function_definition(&function_token);
 //    print("STRLEN ");
@@ -264,7 +262,7 @@ static void print_formatted_token(Token *const token, char const flags) {
     char const _FLAG_NL        = 0b00100000 & flags;
 
     switch (token->type) {
-        case T_ID:
+        case T_VAR_ID:
             print(_FLAG_TF ? "TF@" : "LF@");
             print(token->attribute);
             break;
@@ -345,9 +343,3 @@ static void print_formatted_token(Token *const token, char const flags) {
         printeol();
     }
 }
-
-//int main() { // todo remove (intended for testing purposes)
-//    gen_init();
-////    gen_function_call("reads", NULL, NULL);
-//    return 0;
-//}
