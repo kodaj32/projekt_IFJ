@@ -4,8 +4,13 @@ declare(strict_types=1);
     $p = 5;
     $n = 10 + $p;
 
+    function chra (int $n) : void{
+        $n = $n + 1;
+    }
+
+
     if ($a !== null) {
-	    read($f);
+	    readi($f);
     } else {
-	    write("Chyba pri nacitani celeho cisla!\n");
+	    chr($n);
     }

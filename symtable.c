@@ -150,7 +150,13 @@ void add_funcs(bst_node_t **tree){
     new_func->local_scope = NULL;
     new_func->data_type = UNDEFINED;
     new_func->params = 0;
-    new_func->func_params = NULL;
+    new_func->func_params = malloc(sizeof(LList));
+    Token t;
+    strcpy(t.attribute,"term");
+    t.type = T_VAR_ID;
+    LL_InsertFirst(new_func->func_params, t);
+
+
     bst_insert(tree, "reads", new_func);
     bst_insert(tree, "readi", new_func);
     bst_insert(tree, "readf", new_func);

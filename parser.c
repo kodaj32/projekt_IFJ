@@ -113,6 +113,7 @@ bool stat(FILE *file, Token *token, bst_node_t *table) {
         Token var_id = *token;
         tData_t var_data = malloc(sizeof(struct tData_t));
         var_data->type = VAR;
+        bst_insert(&table,token->attribute,var_data);
         return (var(file, token, var_data) && assign(file,token,&var_id, table));
     }
     else if ((token->type == T_EPILOGUE) || (token->type == T_EOF) || (token->type == T_R_CUR_BRACKET)) {
@@ -196,30 +197,49 @@ bool val(FILE *file, Token *token) {
 
 bool fun_call(FILE *file, Token *token, bst_node_t *table) {
 
-    tData_t func; 
+    Token tmp = *token; 
+
+    tData_t func = NULL; 
     func = bst_search(table, token->attribute, &func);
+
+    if(func == NULL){
+        //exit(3);
+        _Exit(3);
+    }
+
+    tData_t call_func = malloc(sizeof(struct tData_t));
+    call_func->func_params = malloc(sizeof(LList));
+
+    LL_Init(call_func->func_params);
+    call_func->type = FUNC;
 
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
         getToken(file, token);
-        if (args(file, token)) {
+        if (args(file, token, call_func)) {
             if(token->type == T_R_BRACKET) {
+                printf("HERE|%d|\n", func->type);
+                gen_function_call(&tmp,func->func_params, call_func->func_params);
+                
                 getToken(file, token);
+                LL_Dispose(call_func->func_params);
+                free(call_func);
                 return true;
             }
         }
     }
-
+    LL_Dispose(call_func->func_params);
+    free(call_func);
     return false;
 }
 
-bool args(FILE *file, Token *token) {
+bool args(FILE *file, Token *token, tData_t data) {
 
     if ((token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || 
         (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || 
         (token->type == T_NULL) || (token->type == T_VAR_ID)) {
 
-        return (arg(file, token) && args_n(file, token));
+        return (arg(file, token, data) && args_n(file, token,data));
     }
     else if (token->type == T_R_BRACKET) {
         return true;
@@ -229,31 +249,30 @@ bool args(FILE *file, Token *token) {
     }
 }
 
-bool arg(FILE *file, Token *token) {
+bool arg(FILE *file, Token *token, tData_t data) {
 
     if ((token->type == T_INT_VAL) || (token->type == T_FLOAT_VAL) || 
         (token->type == T_FLOAT_EXP_VAL) || (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
-
+            LL_InsertFirst(data->func_params, *token);
         return val(file, token);
     }
     else if (token->type == T_VAR_ID) {
-        tData_t var_data = malloc(sizeof(struct tData_t));
-        var_data->type = VAR;
-        return var(file, token, var_data);
+        
+        return var(file, token, data);
     }
     else {
         return false;
     }    
 }
 
-bool args_n(FILE *file, Token *token) {
+bool args_n(FILE *file, Token *token, tData_t data) {
 
     if (token->type == T_R_BRACKET) {
         return true;
     }
     else if (token->type == T_COMMA) {
         getToken(file, token);
-        return (arg(file, token) && args_n(file, token));
+        return (arg(file, token,data) && args_n(file, token,data));
     }
     else {
         return false;
@@ -327,14 +346,16 @@ bool while_cycle(FILE *file, Token *token, bst_node_t* table) {
 }
 
 bool fun_def(FILE *file, Token *token, bst_node_t *table) {
-    Token *func_id;
+    Token func_id;
     tData_t func_data = malloc(sizeof(struct tData_t));
     func_data->type = FUNC;
+    func_data->func_params = malloc(sizeof(LList));
     LL_Init(func_data->func_params);
-
+    printf("|here2|\n");
     getToken(file, token);
     if (token->type == T_ID) {
-        func_id = token;
+        func_id = *token;
+        
         gen_function_definition_head(token);
         getToken(file, token);
         if (token->type == T_L_BRACKET) {
@@ -347,8 +368,9 @@ bool fun_def(FILE *file, Token *token, bst_node_t *table) {
                             getToken(file, token);
                             if (local_stat_seq(file, token, table)) {
                                 if (token->type == T_R_CUR_BRACKET) {
-                                    gen_function_definition_tail(func_id);
-                                    bst_insert(&table, func_id->attribute, func_data);
+                                    
+                                    gen_function_definition_tail(&func_id);
+                                    bst_insert(&table, func_id.attribute, func_data);
                                     getToken(file, token);
                                     return true;
                                 }
