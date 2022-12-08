@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "linked_list.h"
 
+
 void symtable_error(){
   fprintf(stderr, "*ERROR* Allocation has failed");
   exit(99);
@@ -88,7 +89,6 @@ void bst_replace_by_rightmost(bst_node_t *target, bst_node_t **tree) {
   }
 
 }
-
 
 void bst_delete(bst_node_t **tree, char *key) {
   if(tree == NULL){
