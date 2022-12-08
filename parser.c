@@ -41,7 +41,7 @@ bool local_stat_seq(FILE *file, Token *token, bst_node_t* table) {
 
     if ((token->type == T_ID) || (token->type == T_RETURN) || 
         (token->type == T_IF) || (token->type == T_WHILE) || 
-        (token->type == T_FUNCTION) || (token->type == T_VAR_ID)) {
+        (token->type == T_FUNCTION) || (token->type == T_VAR_ID) || (token->type == T_R_CUR_BRACKET)) {
 
         return (stat(file, token, table) && local_next_stat(file, token, table));
     }
