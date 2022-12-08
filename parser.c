@@ -95,10 +95,10 @@ bool stat(FILE *file, Token *token, bst_node_t *table) {
     if (token->type == T_RETURN) {
         gen_function_return();
         getToken(file, token);
-        return expr(file, token);
+        return expr(file, token, table);
     }
     else if (token->type == T_ID) {
-        return fun_call(file, token);
+        return fun_call(file, token, table);
     }
     else if (token->type == T_IF) {
         return cond_stat(file, token, table);
@@ -111,7 +111,9 @@ bool stat(FILE *file, Token *token, bst_node_t *table) {
     }
     else if (token->type == T_VAR_ID) {
         Token var_id = *token;
-        return (var(file, token) && assign(file,token,&var_id));
+        tData_t var_data = malloc(sizeof(struct tData_t));
+        var_data->type = VAR;
+        return (var(file, token, var_data) && assign(file,token,&var_id, table));
     }
     else if ((token->type == T_EPILOGUE) || (token->type == T_EOF) || (token->type == T_R_CUR_BRACKET)) {
         return true;
@@ -155,11 +157,11 @@ bool terminator(FILE *file, Token *token) {
     }    
 }
 
-bool assign(FILE *file, Token *token, Token *var_id){
+bool assign(FILE *file, Token *token, Token *var_id, bst_node_t *table){
 
     if (token->type == T_ASSIGN) {
         getToken(file, token);
-        bool is_done = expr(file, token);
+        bool is_done = expr(file, token, table);
         
         gen_variable_assignment_of_expression(var_id);
         return is_done;
@@ -169,7 +171,7 @@ bool assign(FILE *file, Token *token, Token *var_id){
     }    
 }
 
-bool expr(FILE *file, Token *token) {
+bool expr(FILE *file, Token *token, bst_node_t *table) {
 
     if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || 
         (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || 
@@ -179,7 +181,7 @@ bool expr(FILE *file, Token *token) {
         return operatorPrecedence(file, token); 
     }
     else if(token->type == T_ID) {
-        return fun_call(file, token);
+        return fun_call(file, token, table);
     }
     else {
         return false;
@@ -192,7 +194,10 @@ bool val(FILE *file, Token *token) {
     return true;
 }
 
-bool fun_call(FILE *file, Token *token) {
+bool fun_call(FILE *file, Token *token, bst_node_t *table) {
+
+    tData_t func; 
+    func = bst_search(table, token->attribute, &func);
 
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
@@ -232,7 +237,9 @@ bool arg(FILE *file, Token *token) {
         return val(file, token);
     }
     else if (token->type == T_VAR_ID) {
-        return var(file, token);
+        tData_t var_data = malloc(sizeof(struct tData_t));
+        var_data->type = VAR;
+        return var(file, token, var_data);
     }
     else {
         return false;
@@ -259,7 +266,7 @@ bool cond_stat(FILE *file, Token *token, bst_node_t *table) {
     getToken(file, token);
     if (token->type == T_L_BRACKET) {
         getToken(file, token);
-        if (expr(file, token)) {
+        if (expr(file, token, table)) {
             if (token->type == T_R_BRACKET) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
@@ -299,7 +306,7 @@ bool while_cycle(FILE *file, Token *token, bst_node_t* table) {
     if (token->type == T_L_BRACKET) {
         getToken(file, token);
         gen_while_cond();
-        if (expr(file, token)) {
+        if (expr(file, token, table)) {
             if (token->type == T_R_BRACKET) {
                 getToken(file, token);
                 if (token->type == T_L_CUR_BRACKET) {
@@ -321,6 +328,9 @@ bool while_cycle(FILE *file, Token *token, bst_node_t* table) {
 
 bool fun_def(FILE *file, Token *token, bst_node_t *table) {
     Token *func_id;
+    tData_t func_data = malloc(sizeof(struct tData_t));
+    func_data->type = FUNC;
+    LL_Init(func_data->func_params);
 
     getToken(file, token);
     if (token->type == T_ID) {
@@ -329,15 +339,16 @@ bool fun_def(FILE *file, Token *token, bst_node_t *table) {
         getToken(file, token);
         if (token->type == T_L_BRACKET) {
             getToken(file, token);
-            if (params(file, token)) {
+            if (params(file, token, func_data)) {
                 if (token->type == T_DOUBLE_DOT) {
                     getToken(file, token);
-                    if (type(file, token)) {
+                    if (type(file, token, func_data)) {
                         if (token->type == T_L_CUR_BRACKET) {
                             getToken(file, token);
                             if (local_stat_seq(file, token, table)) {
                                 if (token->type == T_R_CUR_BRACKET) {
                                     gen_function_definition_tail(func_id);
+                                    bst_insert(&table, func_id->attribute, func_data);
                                     getToken(file, token);
                                     return true;
                                 }
@@ -352,9 +363,9 @@ bool fun_def(FILE *file, Token *token, bst_node_t *table) {
     return false;
 }
 
-bool type(FILE *file, Token *token) {
+bool type(FILE *file, Token *token, tData_t data) {
 
-    if (type_prefix(file, token) && type2(file, token)) {
+    if (type_prefix(file, token) && type2(file, token, data)) {
         return true;
     }
     else {
@@ -362,9 +373,17 @@ bool type(FILE *file, Token *token) {
     }    
 }
 
-bool type2(FILE *file, Token *token) {
+bool type2(FILE *file, Token *token, tData_t data) {
 
     if ((token->type == T_INT) || (token->type == T_FLOAT) || (token->type == T_VOID)) {
+
+        if(token->type == T_INT){
+            data->data_type = INT;
+        }else if(token->type == T_FLOAT){
+            data->data_type = FLOAT;
+        }else if(token->type == T_VOID){
+            data->data_type = VOID;
+        }
         getToken(file, token);
         return true;
     }
@@ -387,7 +406,7 @@ bool type_prefix(FILE *file, Token *token) {
     }
 }
 
-bool params(FILE *file, Token *token) {
+bool params(FILE *file, Token *token, tData_t data) {
     
     if (token->type == T_R_BRACKET) {
         getToken(file, token);
@@ -396,14 +415,14 @@ bool params(FILE *file, Token *token) {
     else if ((token->type == T_TYPE_ID) || (token->type == T_INT) || 
              (token->type == T_FLOAT) || (token->type == T_VOID)) {
 
-        return (type(file, token) && var(file, token) && params_n(file, token));
+        return (type(file, token, data) && var(file, token, data) && params_n(file, token, data));
     }
     else {
         return false;
     }    
 }
 
-bool params_n(FILE *file, Token *token) {
+bool params_n(FILE *file, Token *token, tData_t data) {
 
     if (token->type == T_R_BRACKET) {
         getToken(file, token);
@@ -411,17 +430,22 @@ bool params_n(FILE *file, Token *token) {
     }
     else if (token->type == T_COMMA) {
         getToken(file, token);
-        return (type(file, token) && var(file, token) && params_n(file, token));
+        return (type(file, token, data) && var(file, token, data) && params_n(file, token, data));
     }
     else {
         return false;
     }    
 }
 
-bool var(FILE *file, Token *token) {
+bool var(FILE *file, Token *token, tData_t data) {
 
     if (token->type == T_VAR_ID) {
         gen_variable_definition(token);
+
+        if(data->type == FUNC){
+            LL_InsertFirst(data->func_params, *token);
+
+        }
         getToken(file, token);
         return true;
     }
@@ -592,6 +616,7 @@ int main(int argc, char *argv[]) {
 
     bst_node_t *sym_table ;
     bst_init(&sym_table);
+    add_funcs(&sym_table);
 
     /** Initialize token structure and get first token */
     Token token;
