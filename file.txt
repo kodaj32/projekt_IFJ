@@ -4,7 +4,7 @@ declare(strict_types=1);
     $a = 5;
     $n = 10 + $a;
 
-    function chra (int $b) : void{
+    function auto(int $b) : void{
         $b = $b + 1;
     }
 
@@ -12,5 +12,5 @@ declare(strict_types=1);
     if ($a !== null) {
 	    readi($f);
     } else {
-	    chr("Hello world\n");
+	    auto("Hello world\n");
     }

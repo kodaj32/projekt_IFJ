@@ -349,7 +349,7 @@ bool fun_def(FILE *file, Token *token, bst_node_t *table) {
     func_data->type = FUNC;
     func_data->func_params = malloc(sizeof(LList));
     LL_Init(func_data->func_params);
-    
+
     getToken(file, token);
     if (token->type == T_ID) {
         func_id = *token;
@@ -546,7 +546,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag, bst_node_t *t
             func = bst_search(table, token->attribute, &func);
 
             if(func == NULL){   
-                exit(3);
+                exit(5);
             }
         }
        
