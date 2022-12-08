@@ -179,7 +179,7 @@ bool expr(FILE *file, Token *token, bst_node_t *table) {
         (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
 
         /** Switch into operator precedence analysis */
-        return operatorPrecedence(file, token); 
+        return operatorPrecedence(file, token, table); 
     }
     else if(token->type == T_ID) {
         return fun_call(file, token, table);
@@ -203,8 +203,7 @@ bool fun_call(FILE *file, Token *token, bst_node_t *table) {
     func = bst_search(table, token->attribute, &func);
 
     if(func == NULL){
-        //exit(3);
-        _Exit(3);
+        exit(3);
     }
 
     tData_t call_func = malloc(sizeof(struct tData_t));
@@ -218,7 +217,6 @@ bool fun_call(FILE *file, Token *token, bst_node_t *table) {
         getToken(file, token);
         if (args(file, token, call_func)) {
             if(token->type == T_R_BRACKET) {
-                printf("HERE|%d|\n", func->type);
                 gen_function_call(&tmp,func->func_params, call_func->func_params);
                 
                 getToken(file, token);
@@ -351,7 +349,7 @@ bool fun_def(FILE *file, Token *token, bst_node_t *table) {
     func_data->type = FUNC;
     func_data->func_params = malloc(sizeof(LList));
     LL_Init(func_data->func_params);
-    printf("|here2|\n");
+    
     getToken(file, token);
     if (token->type == T_ID) {
         func_id = *token;
@@ -477,7 +475,7 @@ bool var(FILE *file, Token *token, tData_t data) {
 }
 
 /** Sets input variable based on actual token from input*/
-void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag) {
+void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag, bst_node_t *table) {
 
     if (token->type == T_PLUS) {
         gen_expression_operator(token);
@@ -542,6 +540,18 @@ void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag) {
     else if ((token->type == T_VAR_ID) || (token->type == T_INT_VAL) || 
              (token->type == T_FLOAT_VAL) || (token->type == T_FLOAT_EXP_VAL) || 
              (token->type == T_STRING_VAL) || (token->type == T_NULL)) {
+
+        if(token->type == T_VAR_ID){
+            tData_t func = NULL; 
+            func = bst_search(table, token->attribute, &func);
+
+            if(func == NULL){   
+                exit(3);
+            }
+        }
+       
+        
+        
         gen_expression_operand(token);
         *dataPtr = ID;
     }
@@ -555,7 +565,7 @@ void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag) {
 }
 
 /** The start of operator precedence analysis */
-bool operatorPrecedence(FILE *file, Token *token) {
+bool operatorPrecedence(FILE *file, Token *token, bst_node_t *table) {
 
     bool repeat = true;
 
@@ -582,7 +592,7 @@ bool operatorPrecedence(FILE *file, Token *token) {
 
     while (repeat) {
 
-        setInput(&input->data, token, &lBracketFlag);
+        setInput(&input->data, token, &lBracketFlag, table);
         if (input->data == ERR) {
             return false;
         }

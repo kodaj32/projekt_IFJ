@@ -33,8 +33,8 @@ bool type_prefix(FILE *file, Token *token);
 bool params(FILE *file, Token *token,tData_t data);
 bool params_n(FILE *file, Token *token,tData_t data);
 bool var(FILE *file, Token *token,tData_t data);
-bool operatorPrecedence(FILE *file, Token *token);
-void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag);
+bool operatorPrecedence(FILE *file, Token *token, bst_node_t *table);
+void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag, bst_node_t *table);
 bool local_stat_seq(FILE *file, Token *token, bst_node_t *table);
 bool local_next_stat(FILE *file, Token *token, bst_node_t *table);
 

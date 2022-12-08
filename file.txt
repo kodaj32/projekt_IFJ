@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-    $p = 5;
-    $n = 10 + $p;
+    $a = 5;
+    $n = 10 + $a;
 
-    function chra (int $n) : void{
-        $n = $n + 1;
+    function chra (int $b) : void{
+        $b = $b + 1;
     }
 
 
     if ($a !== null) {
 	    readi($f);
     } else {
-	    chra("Hello world\n");
+	    chr("Hello world\n");
     }
