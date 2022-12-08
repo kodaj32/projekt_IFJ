@@ -588,6 +588,9 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    bst_node_t *sym_table;
+    bst_init(sym_table);
+
     /** Initialize token structure and get first token */
     Token token;
     getToken(fp, &token);
