@@ -3,11 +3,9 @@
 #include <stdlib.h>
 #include "linked_list.h"
 
-int error_code = 0;
-
 void symtable_error(){
-  error_code = 99;
-  fprintf(stderr, "*ERROR* Allocation was not commited successfully");
+  fprintf(stderr, "*ERROR* Allocation has failed");
+  exit(99);
 }
 
 void bst_init(bst_node_t **tree) {
