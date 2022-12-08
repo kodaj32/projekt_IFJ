@@ -43,17 +43,16 @@ void bst_insert(bst_node_t **tree, char *key, tData_t value) {
   if(rootPtr == NULL){
     rootPtr = malloc(sizeof(bst_node_t));
     if(rootPtr == NULL){
-      return;
+      symtable_error();
     }
     else{
-      symtable_error();
-      
+      rootPtr->key = key;
+      rootPtr->value = value;
+      rootPtr->left= NULL;
+      rootPtr->right=NULL;
     }
 
-    rootPtr->key = key;
-    rootPtr->value = value;
-    rootPtr->left= NULL;
-    rootPtr->right=NULL;
+
 
 
     if(*tree == NULL){
