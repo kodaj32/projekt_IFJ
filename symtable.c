@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include "linked_list.h"
 
+int error_code = 0;
+
+void symtable_error(){
+  error_code = 99;
+  fprintf(stderr, "*ERROR* Allocation was not commited successfully");
+}
+
 void bst_init(bst_node_t **tree) {
   if(tree != NULL){
     *tree = NULL;
@@ -41,7 +48,8 @@ void bst_insert(bst_node_t **tree, char *key, tData_t value) {
       return;
     }
     else{
-      exit(99);
+      symtable_error();
+      
     }
 
     rootPtr->key = key;
