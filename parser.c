@@ -160,7 +160,7 @@ bool assign(FILE *file, Token *token, Token *var_id){
     if (token->type == T_ASSIGN) {
         getToken(file, token);
         bool is_done = expr(file, token);
-        printf("|%s|\n",getTokenSymbol(var_id->type));
+        
         gen_variable_assignment_of_expression(var_id);
         return is_done;
     }
