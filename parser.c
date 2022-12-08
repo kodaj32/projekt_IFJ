@@ -412,6 +412,7 @@ bool var(FILE *file, Token *token) {
     }    
 }
 
+/** Sets input variable based on actual token from input*/
 void setInput(Prec_type *dataPtr, Token *token, int *lBracketFlag) {
 
     if (token->type == T_PLUS) {
@@ -494,7 +495,7 @@ bool operatorPrecedence(FILE *file, Token *token) {
 
     bool repeat = true;
 
-    // inicializuje sa zoznam/stack
+    /** Initialization of a list*/
     PrecLList list;
     Prec_LL_Init(&list);
     Prec_LL_InsertFirst(&list, END_MARKER);
@@ -505,7 +506,7 @@ bool operatorPrecedence(FILE *file, Token *token) {
     */
     int lBracketFlag = 1;
 
-    // vytvori sa vstupna premenna
+    /** Allocation of input and top variable */
     PrecElementPtr input = malloc(sizeof(struct PrecLLElement));
     if (input == NULL) {
         Prec_LL_Error();
@@ -517,21 +518,15 @@ bool operatorPrecedence(FILE *file, Token *token) {
 
     while (repeat) {
 
-        // setInput
         setInput(&input->data, token, &lBracketFlag);
         if (input->data == ERR) {
             return false;
         }
 
-        // top = getFirst
         Prec_LL_GetFirstTerminal(&list, &top->data);
 
-        // op = table[a][b];
         char op = precedenceTable[top->data][input->data];
 
-        // if op == '=' then InsertFirst
-        // else if op == '<' then InsertBeforeFirstTerminal
-        // else if op == '>' ruleReduction
         if (op == '=') {
             Prec_LL_InsertFirst(&list, input->data);
 
@@ -554,6 +549,7 @@ bool operatorPrecedence(FILE *file, Token *token) {
         }          
     }
 
+    /** Free allocated memory */
     Prec_LL_Dispose(&list);
     free(input);
     free(top);
@@ -563,8 +559,13 @@ bool operatorPrecedence(FILE *file, Token *token) {
 
 int main(int argc, char *argv[]) {
 
-    // open file
-    FILE * fp = fopen("file.txt", "r");
+    
+    /** Open file */
+    FILE * fp;
+
+    if (argc == 2) {
+        fp = fopen(argv[1], "r");
+    }    
 
     if (fp == NULL) {
         return -1;
