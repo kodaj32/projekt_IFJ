@@ -35,7 +35,7 @@ tData_t bst_search(bst_node_t *tree, char *key, tData_t *value) {
   }
 }
 
-tData_t bst_insert(bst_node_t **tree, char *key, tData_t value) {
+void bst_insert(bst_node_t **tree, char *key, tData_t value) {
   if(tree == NULL){
     return;
   }
