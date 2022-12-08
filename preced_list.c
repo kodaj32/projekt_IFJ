@@ -6,12 +6,14 @@ void Prec_LL_Error(){
     exit(99);
 }
 
+/** Initializes empty list */
 void Prec_LL_Init(PrecLList *list){
 
     list->activeElement = NULL;
 	list->firstElement = NULL;
 }
 
+/** Frees all elements from the list */
 void Prec_LL_Dispose( PrecLList *list ) {
 
 	struct PrecLLElement *tmpElemPtr;
@@ -56,6 +58,7 @@ void Prec_LL_GetFirst( PrecLList *list, Prec_type *dataPtr ) {
 	}
 }
 
+/** Searches list for first terminal symbol and writes it to dataPtr */
 void Prec_LL_GetFirstTerminal( PrecLList *list, Prec_type *dataPtr ) {
 
 	Prec_LL_First(list);
@@ -78,6 +81,7 @@ void Prec_LL_GetFirstTerminal( PrecLList *list, Prec_type *dataPtr ) {
 	}
 }
 
+/** Goes through elements of list until first handle and uses one of the rules to reduce the expression*/
 void Prec_LL_RuleReduction( PrecLList *list ) {
 
 	struct PrecLLElement *firstPtr = malloc(sizeof(struct PrecLLElement));
@@ -152,7 +156,7 @@ void Prec_LL_RuleReduction( PrecLList *list ) {
 		}
 	}
 	else {
-		//error 
+		exit(2);
 	}
 
 	free(firstPtr);
@@ -190,6 +194,7 @@ void Prec_LL_InsertAfter( PrecLList *list, Prec_type data ) {
 	}
 }
 
+/** Searches for first terminal symbol and inserts HANDLE in front of it */
 void Prec_LL_InsertBeforeFirstTerminal( PrecLList *list, Prec_type data ) {
 
 	struct PrecLLElement *newElementPtr;
@@ -211,8 +216,10 @@ void Prec_LL_InsertBeforeFirstTerminal( PrecLList *list, Prec_type data ) {
 				if ((list->activeElement->nextElement->data != NON_TERMINAL) || 
 					(list->activeElement->nextElement->data != HANDLE)) {
 
-					// aktivny element je nonterminal, ale dalsi element je terminal
-					// insert handle za active element
+					/** 
+					 * Active element is nonterminal symbol but the next element is terminal symbol
+					 * Insert handle after active element
+					 */
 					newElementPtr->data = data;
 					newElementPtr->nextElement = list->activeElement->nextElement;
 					list->activeElement->nextElement = newElementPtr;
@@ -222,7 +229,7 @@ void Prec_LL_InsertBeforeFirstTerminal( PrecLList *list, Prec_type data ) {
 					Prec_LL_Next(list);
 				}				
 			}
-			else { // prvy element je terminal, insert handle first
+			else { // first element is terminal symbol, insert handle first
 				
 				Prec_LL_InsertFirst(list, data);
 				not_found = false;				
