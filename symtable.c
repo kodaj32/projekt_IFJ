@@ -47,14 +47,17 @@ void bst_insert(bst_node_t **tree, char *key, tData_t value) {
       symtable_error();
     }
     else{
-      rootPtr->key = key;
-      rootPtr->value = value;
-      rootPtr->left= NULL;
-      rootPtr->right=NULL;
+      rootPtr->key = calloc(strlen(key)+1, sizeof(char*));
+      if(rootPtr->key != NULL){
+        strcpy(rootPtr->key, key);
+        rootPtr->value = value;
+        rootPtr->left= NULL;
+        rootPtr->right=NULL;
+      }
+      else{
+        symtable_error();
+      }
     }
-
-
-
 
     if(*tree == NULL){
       *tree = rootPtr;
