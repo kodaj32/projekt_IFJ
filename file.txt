@@ -12,5 +12,5 @@ declare(strict_types=1);
     if ($a !== null) {
 	    readi($f);
     } else {
-	    chr($n);
+	    chra("Hello world\n");
     }

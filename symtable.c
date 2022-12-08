@@ -156,7 +156,9 @@ void add_funcs(bst_node_t **tree){
     t.type = T_VAR_ID;
     LL_InsertFirst(new_func->func_params, t);
 
-
+    new_func->params = -1;
+    bst_insert(tree, "write", new_func);
+    new_func->params = 0;
     bst_insert(tree, "reads", new_func);
     bst_insert(tree, "readi", new_func);
     bst_insert(tree, "readf", new_func);
@@ -169,8 +171,7 @@ void add_funcs(bst_node_t **tree){
     bst_insert(tree, "strlen", new_func);
     new_func->params = 3;
     bst_insert(tree, "substring", new_func);
-    new_func->params = -1;
-    bst_insert(tree, "write", new_func);
+    
   }
 
 }
