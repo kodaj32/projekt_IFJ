@@ -28,7 +28,8 @@ bool stat_seq(FILE *file, Token *token, bst_node_t *table) {
 
     if ((token->type == T_ID) || (token->type == T_RETURN) || 
         (token->type == T_IF) || (token->type == T_WHILE) || 
-        (token->type == T_FUNCTION) || (token->type == T_VAR_ID) || (token->type == T_EOF) || (token->type == T_EPILOGUE) ) {
+        (token->type == T_FUNCTION) || (token->type == T_VAR_ID) || 
+        (token->type == T_EOF) || (token->type == T_EPILOGUE) ) {
 
         return (stat(file, token, table) && next_stat(file, token, table));
     }
