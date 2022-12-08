@@ -20,7 +20,7 @@ typedef enum{
 
 //Data v uzle
 
-typedef struct tData{
+typedef struct tData_t{
     tType type;                         // typ identifikatoru
     tdata_Type data_type;               // datovy typ
     bool defined;                       // pozerame ci volana funkcia bola definovana
@@ -44,3 +44,5 @@ tData_t bst_search(bst_node_t *tree, char *key, tData_t *value);
 void bst_delete(bst_node_t **tree, char *key);
 void bst_dispose(bst_node_t **tree);
 void bst_replace_by_rightmost(bst_node_t *target, bst_node_t **tree);
+void add_funcs(bst_node_t **tree);
+void symtable_error();
