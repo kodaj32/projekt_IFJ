@@ -110,8 +110,8 @@ bool stat(FILE *file, Token *token, bst_node_t *table) {
         return fun_def(file, token, table);
     }
     else if (token->type == T_VAR_ID) {
-        Token *var_id = token;
-        return (var(file, token) && assign(file,token,var_id));
+        Token var_id = *token;
+        return (var(file, token) && assign(file,token,&var_id));
     }
     else if ((token->type == T_EPILOGUE) || (token->type == T_EOF) || (token->type == T_R_CUR_BRACKET)) {
         return true;
@@ -160,6 +160,7 @@ bool assign(FILE *file, Token *token, Token *var_id){
     if (token->type == T_ASSIGN) {
         getToken(file, token);
         bool is_done = expr(file, token);
+        printf("|%s|\n",getTokenSymbol(var_id->type));
         gen_variable_assignment_of_expression(var_id);
         return is_done;
     }
