@@ -21,7 +21,7 @@ tData_t bst_search(bst_node_t *tree, char *key, tData_t *value) {
     return NULL;
   }
 
-  else if (strcmp(tree->key, key) == 0){
+  else if (strcmp(key, tree->key) == 0){
     *value = tree->value;
     return *value;
   }
@@ -35,7 +35,7 @@ tData_t bst_search(bst_node_t *tree, char *key, tData_t *value) {
   }
 }
 
-void bst_insert(bst_node_t **tree, char *key, tData_t value) {
+tData_t bst_insert(bst_node_t **tree, char *key, tData_t value) {
   if(tree == NULL){
     return;
   }
@@ -67,7 +67,7 @@ void bst_insert(bst_node_t **tree, char *key, tData_t value) {
     if(strcmp(key, rootPtr->key) < 0){
       bst_insert(&rootPtr->left, key, value);
     }
-    else if(strcmp(rootPtr->key, key) > 0){
+    else if(strcmp(key, rootPtr->key) > 0){
       bst_insert(&rootPtr->right, key, value);
     }
     else{
