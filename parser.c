@@ -634,12 +634,13 @@ bool operatorPrecedence(FILE *file, Token *token, bst_node_t *table) {
     return true;
 }
 
-int main(int argc, char *argv[]) {
+int main(/*int argc, char *argv[]*/) {
 
     
     /** Open file */
-    FILE * fp;
+    FILE * fp = stdin;
 
+    /*
     if (argc == 2) {
         fp = fopen(argv[1], "r");
     }    
@@ -647,7 +648,7 @@ int main(int argc, char *argv[]) {
     if (fp == NULL) {
         return -1;
     }
-
+    */
     bst_node_t *sym_table ;
     bst_init(&sym_table);
     add_funcs(&sym_table);
