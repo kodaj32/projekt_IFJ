@@ -85,7 +85,7 @@ int detectHead(FILE *file){
 
             case STATE_START:
 
-                if(curr_char == 'd' && is_new_line){
+                if(curr_char == 'd' /*&& is_new_line*/){
 
                     state = STATE_HEAD_2;
                     ungetc(curr_char, file);
